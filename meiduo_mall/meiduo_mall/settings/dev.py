@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import sys
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -27,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Application definition
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
 INSTALLED_APPS = [
     # 'django.contrib.admin',
@@ -35,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -79,7 +83,7 @@ DATABASES = {
         'NAME': 'meiduo_27',
         'HOST': '',
         'PORT': '',
-        'USER': 'drochao',
+        'USER': 'chao',
         'PASSWORD': 'qinhan',
     }
 }
@@ -120,7 +124,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 CACHES = {
@@ -182,3 +186,5 @@ LOGGING = {
         },
     }
 }
+
+AUTH_USER_MODEL = 'users.User'
