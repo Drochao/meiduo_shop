@@ -13,11 +13,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+
+from meiduo_mall.apps.contents import views
+
+app_name = 'contents'
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
-    path('users/', include('users.urls', namespace='users')),
-    path('contents/', include('contents.urls', namespace='contents'))
+    path('index/', views.IndexView.as_view(), name="index")
 ]
