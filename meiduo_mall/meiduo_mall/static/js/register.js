@@ -68,8 +68,12 @@ var vm = new Vue({
             if (this.error_name == false) {
                 var url = this.host + '/usernames/' + this.username + '/count/';
                 axios.get(url, {
-                    responseType: 'json'
-                })
+                    responseType: 'json',
+                    headers:{'Content-Type': 'application/json',
+                        "Access-Control-Allow-Origin": "*",
+                        'Accept': 'application/json'},
+                }
+                )
                     .then(response => {
                         if (response.data.count > 0) {
                             this.error_name_message = '用户名已存在';
@@ -80,8 +84,6 @@ var vm = new Vue({
                     })
                     .catch(error => {
                         console.log(error.response);
-
-
                     })
             }
         },

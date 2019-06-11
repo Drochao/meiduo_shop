@@ -1,14 +1,14 @@
 import re
 
 from django.contrib.auth import login
-from django.db import DatabaseError
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.urls import reverse
 from django.views import View
 
+from meiduo_mall.utils.response_code import RETCODE
 from users.models import User
 
 
@@ -54,3 +54,32 @@ class Register(View):
         login(request, user)
 
         return redirect(reverse('contents:index'))
+
+
+class UsernameCountView(View):
+    """判断用户名是否重复注册"""
+    def get(self, request, username):
+        count = User.objects.filter(username=username).count()
+        content = {
+            'code': RETCODE.OK,
+            'errmsg': 'OK',
+            'count': count,
+        }
+        return JsonResponse(content)
+
+
+class MobileCountView(View):
+    """判断用户名是否重复注册"""
+    def get(self, request, mobile):
+        count = User.objects.filter(mobile=mobile).count()
+        content = {
+            'code': RETCODE.OK,
+            'errmsg': 'OK',
+            'count': count,
+        }
+        return JsonResponse(content)
+
+
+class ImageCodeView(View):
+    def get(self, request, uuid):
+        pass
