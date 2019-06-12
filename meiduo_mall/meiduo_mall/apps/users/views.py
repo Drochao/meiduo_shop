@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 # Create your views here.
 from django.urls import reverse
 from django.views import View
+from django_redis import get_redis_connection
 
 from meiduo_mall.utils.response_code import RETCODE
 from users.models import User
@@ -24,6 +25,7 @@ class Register(View):
         password2 = request.POST.get('password2')
         mobile = request.POST.get('mobile')
         allow = request.POST.get('allow')
+        image_code = request.POST.get('image_code')
         # 判断参数是否齐全
         if not all([username, password, password2, mobile, allow]):
             return HttpResponseForbidden('缺少必传参数')
@@ -79,7 +81,3 @@ class MobileCountView(View):
         }
         return JsonResponse(content)
 
-
-class ImageCodeView(View):
-    def get(self, request, uuid):
-        pass

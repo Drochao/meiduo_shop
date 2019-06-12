@@ -69,10 +69,7 @@ var vm = new Vue({
                 var url = this.host + '/usernames/' + this.username + '/count/';
                 axios.get(url, {
                     responseType: 'json',
-                    headers:{'Content-Type': 'application/json',
-                        "Access-Control-Allow-Origin": "*",
-                        'Accept': 'application/json'},
-                }
+                    }
                 )
                     .then(response => {
                         if (response.data.count > 0) {
