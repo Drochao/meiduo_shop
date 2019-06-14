@@ -1,6 +1,7 @@
 import re
 
-from django.contrib.auth import login
+from django.conf import settings
+from django.contrib.auth import login, logout
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
 
@@ -11,9 +12,10 @@ from django_redis import get_redis_connection
 
 from meiduo_mall.utils.response_code import RETCODE
 from users.models import User
+from users.utils import UsernameMobileAuthBackend
 
 
-class Register(View):
+class RegisterView(View):
     """注册类视图"""
 
     def get(self, request):
@@ -25,7 +27,7 @@ class Register(View):
         password2 = request.POST.get('password2')
         mobile = request.POST.get('mobile')
         allow = request.POST.get('allow')
-        image_code = request.POST.get('image_code')
+        sms_code = request.POST.get('sms_code')
         # 判断参数是否齐全
         if not all([username, password, password2, mobile, allow]):
             return HttpResponseForbidden('缺少必传参数')
@@ -45,6 +47,19 @@ class Register(View):
         if allow != 'on':
             return HttpResponseForbidden('请勾选用户协议')
 
+        # 判断短信验证码是否正确
+        redis_conn = get_redis_connection('verify_code')
+
+        sms_code_server = redis_conn.get(f'sms_{mobile}')
+        if sms_code_server is None:
+            return HttpResponseForbidden('短信验证码已经过期')
+        redis_conn.delete(f'sms_{mobile}')
+
+        sms_code_server = sms_code_server.decode()
+
+        if sms_code != sms_code_server:
+            return HttpResponseForbidden("手机验证码输入有误!!")
+
         # 保存注册数据
         try:
             user = User.objects.create_user(username=username, password=password,
@@ -54,13 +69,19 @@ class Register(View):
             return render(request, 'register.html', {'register_errmsg': '注册失败'})
 
         login(request, user)
+        # 响应注册结果
+        response = redirect(reverse('contents:index'))
 
-        return redirect(reverse('contents:index'))
+        # 注册时用户名写入到cookie，有效期15天
+        response.set_cookie('username', user.username, max_age=3600 * 24 * 14)
+
+        return response
 
 
 class UsernameCountView(View):
     """判断用户名是否重复注册"""
-    def get(self, request, username):
+
+    def get(self, username):
         count = User.objects.filter(username=username).count()
         content = {
             'code': RETCODE.OK,
@@ -72,7 +93,8 @@ class UsernameCountView(View):
 
 class MobileCountView(View):
     """判断用户名是否重复注册"""
-    def get(self, request, mobile):
+
+    def get(self, mobile):
         count = User.objects.filter(mobile=mobile).count()
         content = {
             'code': RETCODE.OK,
@@ -81,3 +103,60 @@ class MobileCountView(View):
         }
         return JsonResponse(content)
 
+
+class LoginView(View):
+    """用户登录"""
+    def get(self, request):
+        """展示登录页面"""
+        return render(request, 'login.html')
+
+    def post(self, request):
+        """实现用户登录"""
+        # 获取数据
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        remembered = request.POST.get("remembered")
+        # 校验数据
+        user = UsernameMobileAuthBackend()
+
+        user = user.authenticate(request, username=username, password=password)
+        if not user:
+            return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
+        # 状态保持
+        login(request, user)
+
+        if remembered != "on":
+            request.session.set_expiry(0)
+
+        # 响应登录结果
+        response = redirect(request.GET.get('next', '/'))
+
+        # 登录时用户名写入到cookie，有效期15天
+        response.set_cookie('username', user.username, max_age=(None if remembered != 'on' else 3600 * 24 * 14))
+
+        return response
+
+
+class LogoutView(View):
+    """退出登录"""
+
+    def get(self, request):
+        """实现退出登陆逻辑"""
+        logout(request)
+
+        response = redirect(reverse('users:login'))
+
+        response.delete_cookie('username')
+
+        return response
+
+
+class UserInfoView(View):
+    """用户中心"""
+
+    def get(self, request):
+        """提供个人信息界面"""
+        if request.user.is_authenticated:
+            return render(request, 'user_center_info.html')
+        else:
+            return redirect(reverse('users:login') + '/?next=/info/')
