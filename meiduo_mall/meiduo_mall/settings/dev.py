@@ -217,3 +217,5 @@ AUTH_USER_MODEL = 'users.User'
 # 让查询用户表时不会关联is_active
 # AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
 AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileAuthBackend']
+
+LOGIN_URL = '/login/'

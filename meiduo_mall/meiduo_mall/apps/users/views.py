@@ -1,12 +1,14 @@
 import re
 
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, mixins
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views import View
 from django_redis import get_redis_connection
 
@@ -106,6 +108,7 @@ class MobileCountView(View):
 
 class LoginView(View):
     """用户登录"""
+
     def get(self, request):
         """展示登录页面"""
         return render(request, 'login.html')
@@ -151,12 +154,18 @@ class LogoutView(View):
         return response
 
 
-class UserInfoView(View):
+class UserInfoView(mixins.LoginRequiredMixin, View):
     """用户中心"""
 
+    # @method_decorator(login_required)
+    # def get(self, request):
+    #     """提供个人信息界面"""
+    #     # 源码的方法，实际采用装饰器方法
+    #     # if request.user.is_authenticated:  # 这里返回的不是bool值，不能用布尔值去比较
+    #     #     return render(request, 'user_center_info.html')
+    #     # else:
+    #     #     return redirect(reverse('users:login') + '/?next=/info/')
+    #     return render(request, 'user_center_info.html')
+
     def get(self, request):
-        """提供个人信息界面"""
-        if request.user.is_authenticated:
-            return render(request, 'user_center_info.html')
-        else:
-            return redirect(reverse('users:login') + '/?next=/info/')
+        return render(request, 'user_center_info.html')
