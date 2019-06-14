@@ -4,11 +4,11 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <title>美多商城-用户中心</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/reset.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
-    <script type="text/javascript" src="/static/js/host.js"></script>
-    <script type="text/javascript" src="/static/js/vue-2.5.16.js"></script>
-    <script type="text/javascript" src="/static/js/axios-0.18.0.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{  static ('css/reset.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{  static ('css/main.css') }}">
+    <script type="text/javascript" src="{{  static ('js/host.js') }}"></script>
+    <script type="text/javascript" src="{{  static ('js/vue-2.5.16.js') }}"></script>
+    <script type="text/javascript" src="{{  static ('js/axios-0.18.0.min.js') }}"></script>
 </head>
 <body>
 <div id="app" v-cloak>
@@ -19,16 +19,16 @@
                 <div class="login_btn fl" v-if="username">
                     欢迎您：<em>[[ username ]]</em>
                     <span>|</span>
-                    <a href="/logout/" class="quit">退出</a>
+                    <a href="{{ url ('users:logout') }}" class="quit">退出</a>
                 </div>
                 <div class="login_btn fl" v-else>
-                    <a href="/login/">登录</a>
+                    <a href="{{ url ('users:login') }}">登录</a>
                     <span>|</span>
-                    <a href="/register/">注册</a>
+                    <a href="{{ url ('users:register') }}">注册</a>
                 </div>
                 <div class="user_link fl">
                     <span>|</span>
-                    <a href="/info/">用户中心</a>
+                    <a href="{{ url ('users:info') }}">用户中心</a>
                     <span>|</span>
                     <a href="/carts/">我的购物车</a>
                     <span>|</span>
@@ -39,7 +39,7 @@
     </div>
 
     <div class="search_bar clearfix">
-        <a href="/" class="logo fl"><img src="/static/images/logo.png"></a>
+        <a href="/" class="logo fl"><img src="{{ static ('images/logo.png') }}"></a>
         <div class="search_wrap fl">
             <form method="get" action="/search/" class="search_con">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

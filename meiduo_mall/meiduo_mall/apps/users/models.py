@@ -6,6 +6,7 @@ from django.db import models
 class User(AbstractUser):
     """自定义用户模型类"""
     mobile = models.CharField('手机号', max_length=11, unique=True)
+    email_active = models.BooleanField('邮箱验证状态', default=False)
 
     class Meta(AbstractUser.Meta):
         db_table = 'tb_users'

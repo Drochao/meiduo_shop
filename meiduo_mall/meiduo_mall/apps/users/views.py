@@ -1,22 +1,25 @@
+import json
+import logging
 import re
 
 from django.conf import settings
-from django.contrib.auth import login, logout, mixins
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
-
-# Create your views here.
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.views import View
 from django_redis import get_redis_connection
 
+from celery_tasks.email.tasks import send_verify_email
+from meiduo_mall.settings import dev
 from meiduo_mall.utils.response_code import RETCODE
 from users.models import User
 from users.utils import UsernameMobileAuthBackend
 
 
+logger = logging.getLogger('user')
 class RegisterView(View):
     """注册类视图"""
 
@@ -135,7 +138,8 @@ class LoginView(View):
         response = redirect(request.GET.get('next', '/'))
 
         # 登录时用户名写入到cookie，有效期15天
-        response.set_cookie('username', user.username, max_age=(None if remembered != 'on' else 3600 * 24 * 14))
+        response.set_cookie('username', user.username, max_age=(
+            None if not remembered else settings.SESSION_COOKIE_AGE))
 
         return response
 
@@ -154,7 +158,7 @@ class LogoutView(View):
         return response
 
 
-class UserInfoView(mixins.LoginRequiredMixin, View):
+class UserInfoView(LoginRequiredMixin, View):
     """用户中心"""
 
     # @method_decorator(login_required)
@@ -168,4 +172,39 @@ class UserInfoView(mixins.LoginRequiredMixin, View):
     #     return render(request, 'user_center_info.html')
 
     def get(self, request):
-        return render(request, 'user_center_info.html')
+        context = {
+            'username': request.user.username,
+            'mobile': request.user.username,
+            'email': request.user.username,
+            'email_active': request.user.username,
+        }
+        return render(request, 'user_center_info.html', context=context)
+
+
+class EmailView(LoginRequiredMixin, View):
+    """添加邮箱"""
+    def put(self, request):
+        """实现添加邮箱逻辑"""
+        json_dict = json.loads(request.body.decode())
+        email = json_dict.get('email')
+
+        if not email:
+            return JsonResponse({'code': RETCODE.NECESSARYPARAMERR, 'errmsg': '缺少email参数'})
+
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return JsonResponse({'code': RETCODE.EMAILERR, 'errmsg': '邮箱格式错误'})
+
+        user = request.user
+
+        User.objects.filter(username=user.username, email='').update(email=email)
+        try:
+            user.email = email
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '添加邮箱失败'})
+
+        verify_url = '邮件验证链接'
+        send_verify_email.delay(email, verify_url)
+
+        return JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})
