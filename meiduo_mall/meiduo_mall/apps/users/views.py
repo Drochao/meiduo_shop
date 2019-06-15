@@ -5,7 +5,6 @@ import re
 from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.mail import send_mail
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -13,13 +12,13 @@ from django.views import View
 from django_redis import get_redis_connection
 
 from celery_tasks.email.tasks import send_verify_email
-from meiduo_mall.settings import dev
 from meiduo_mall.utils.response_code import RETCODE
 from users.models import User
-from users.utils import UsernameMobileAuthBackend
-
+from users.utils import UsernameMobileAuthBackend, generate_verify_email_url
 
 logger = logging.getLogger('user')
+
+
 class RegisterView(View):
     """注册类视图"""
 
@@ -204,7 +203,7 @@ class EmailView(LoginRequiredMixin, View):
             logger.error(e)
             return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '添加邮箱失败'})
 
-        verify_url = '邮件验证链接'
+        verify_url = generate_verify_email_url(user)
         send_verify_email.delay(email, verify_url)
 
         return JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})

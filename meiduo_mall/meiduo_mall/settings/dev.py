@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'verifications.apps.VerificationsConfig',
     'xadmin',
     'crispy_forms',
+    'oauth.apps.OauthConfig',
 ]
 
 MIDDLEWARE = [
@@ -228,3 +229,5 @@ EMAIL_HOST_USER = '934061223@qq.com'  # 你的 QQ 账号
 EMAIL_HOST_PASSWORD = 'himgivgiytszbbdi'
 EMAIL_USE_TLS = True  # 这里必须是 True，否则发送不成功
 EMAIL_FROM = '934061223@qq.com'  # 你的 QQ 账号
+
+EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
