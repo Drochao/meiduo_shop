@@ -23,5 +23,7 @@ urlpatterns = [
     path('adminx/', xadmin.site.urls),
     path('', include('users.urls', namespace='users')),
     path('', include('contents.urls', namespace='contents')),
-    path('', include('verifications.urls', namespace='verifications'))
+    path('', include('verifications.urls', namespace='verifications')),
+    path('', include('oauth.urls', namespace='oauth')),
+    path('', include('areas.urls', namespace='areas'))
 ]

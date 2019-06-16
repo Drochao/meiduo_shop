@@ -1,15 +1,5 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <title>美多商城-用户中心</title>
-    <link rel="stylesheet" type="text/css" href="{{  static ('css/reset.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{  static ('css/main.css') }}">
-    <script type="text/javascript" src="{{  static ('js/host.js') }}"></script>
-    <script type="text/javascript" src="{{  static ('js/vue-2.5.16.js') }}"></script>
-    <script type="text/javascript" src="{{  static ('js/axios-0.18.0.min.js') }}"></script>
-</head>
+{% extends 'base.html' %}
+{% block body %}
 <body>
 <div id="app" v-cloak>
     <div class="header_con">
@@ -59,9 +49,9 @@
         <div class="left_menu_con clearfix">
             <h3>用户中心</h3>
             <ul>
-                <li><a href="/info/" class="active">· 个人信息</a></li>
+                <li><a href="{{ url ('users:info') }}" class="active">· 个人信息</a></li>
                 <li><a href="/orders/info/1/">· 全部订单</a></li>
-                <li><a href="/addresses/">· 收货地址</a></li>
+                <li><a href="{{ url ('users:addresses') }}">· 收货地址</a></li>
                 <li><a href="/password/">· 修改密码</a></li>
             </ul>
         </div>
@@ -133,3 +123,4 @@
 <script type="text/javascript" src="{{ static('js/user_center_info.js') }}"></script>
 </body>
 </html>
+{% endblock body %}

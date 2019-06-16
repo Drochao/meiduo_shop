@@ -1,6 +1,9 @@
 import random
 import logging
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, \
+    HttpResponseServerError
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.views import View
 from django_redis import get_redis_connection
 
@@ -8,6 +11,7 @@ from celery_tasks.sms.tasks import send_sms_code
 from meiduo_mall.libs.captcha.captcha import captcha
 from meiduo_mall.utils.response_code import RETCODE
 from verifications import constants
+from verifications.utils import check_verify_email_token
 
 logger = logging.getLogger('django')
 
@@ -21,6 +25,7 @@ class ImageCodeView(View):
         redis_conn = get_redis_connection('verify_code')
         # 将图形验证码的字符 存储到redis中 用uuid作为key
         redis_conn.setex(uuid, constants.IMAGE_CODE_EXPIRES, text)
+        print(text)
 
         return HttpResponse(image, content_type='image/jpg')
 
@@ -81,17 +86,30 @@ class SMSCodeView(View):
 
         # 生产任务
         send_sms_code.delay(mobile, sms_code)
-        # if result:
-        #     return JsonResponse({
-        #         'code': RETCODE.OK,
-        #         'errmsg': '发送短信成功'
-        #     })
-        # else:
-        #     return JsonResponse({
-        #         'code': RETCODE.MOBILEERR,
-        #         'errmsg': '发送短信失败'
-        #     })
         return JsonResponse({
             'code': RETCODE.OK,
             'errmsg': '发送短信验证码成功'
         })
+
+
+class VerifyEmailView(View):
+    """验证邮箱"""
+    def get(self, request):
+        """实现邮箱验证逻辑"""
+        token = request.GET.get('token')
+
+        if not token:
+            return HttpResponseBadRequest('缺少token')
+
+        user = check_verify_email_token(token)
+        if not user:
+            return HttpResponseForbidden('无效的token')
+
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return HttpResponseServerError('激活邮件失败')
+        # 什么时候显示已验证
+        return redirect(reverse('users:info'))

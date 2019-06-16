@@ -26,7 +26,7 @@ SECRET_KEY = 'rs(4mn6l6=@giajcj5)(3u6uz9_a#7f@+fl-wy24akaubp*9gr'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.meiduo.site']
 
 # Application definition
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'xadmin',
     'crispy_forms',
     'oauth.apps.OauthConfig',
+    'areas.apps.AreasConfig',
 ]
 
 MIDDLEWARE = [
@@ -231,3 +232,7 @@ EMAIL_USE_TLS = True  # 这里必须是 True，否则发送不成功
 EMAIL_FROM = '934061223@qq.com'  # 你的 QQ 账号
 
 EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
+
+QQ_CLIENT_ID = '101518219'
+QQ_CLIENT_SECRET = '418d84ebdc7241efb79536886ae95224'
+QQ_REDIRECT_URI = 'http://www.meiduo.site:8000/oauth_callback'

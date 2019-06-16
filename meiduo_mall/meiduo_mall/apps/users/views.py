@@ -33,13 +33,13 @@ class RegisterView(View):
         allow = request.POST.get('allow')
         sms_code = request.POST.get('sms_code')
         # 判断参数是否齐全
-        if not all([username, password, password2, mobile, allow]):
+        if not all([username, password, password2, mobile, allow, sms_code]):
             return HttpResponseForbidden('缺少必传参数')
         # 判断用户名是否是5-20个字符
         if not re.match(r'^[\da-zA-Z_-]{5,20}$', username):
             return HttpResponseForbidden('请输入5-20个字符的用户名')
         # 判断密码是否是8-20个数字
-        if not re.match(r'^[\d]{8,20}$', password):
+        if not re.match(r'^[a-zA-Z\d]{8,20}$', password):
             return HttpResponseForbidden('请输入8-20个数字的密码')
         # 判断两次密码是否一致
         if password != password2:
@@ -182,6 +182,7 @@ class UserInfoView(LoginRequiredMixin, View):
 
 class EmailView(LoginRequiredMixin, View):
     """添加邮箱"""
+
     def put(self, request):
         """实现添加邮箱逻辑"""
         json_dict = json.loads(request.body.decode())
@@ -207,3 +208,11 @@ class EmailView(LoginRequiredMixin, View):
         send_verify_email.delay(email, verify_url)
 
         return JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})
+
+
+class AddressView(LoginRequiredMixin, View):
+    """用户收货地址"""
+
+    def get(self, request):
+        """用户收货地址展示"""
+        return render(request, 'user_center_site.html')
