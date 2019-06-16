@@ -13,10 +13,12 @@ from django_redis import get_redis_connection
 
 from celery_tasks.email.tasks import send_verify_email
 from meiduo_mall.utils.response_code import RETCODE
-from users.models import User
-from users.utils import UsernameMobileAuthBackend, generate_verify_email_url
+from users import constants
+from users.models import User, Address
+from users.utils import UsernameMobileAuthBackend, generate_verify_email_url, getdata, forbidden
 
 logger = logging.getLogger('user')
+OK = {'code': RETCODE.OK, 'errmsg': 'OK'}
 
 
 class RegisterView(View):
@@ -85,27 +87,19 @@ class RegisterView(View):
 class UsernameCountView(View):
     """判断用户名是否重复注册"""
 
-    def get(self, username):
+    def get(self, request, username):
         count = User.objects.filter(username=username).count()
-        content = {
-            'code': RETCODE.OK,
-            'errmsg': 'OK',
-            'count': count,
-        }
-        return JsonResponse(content)
+        OK['count'] = count
+        return JsonResponse(OK)
 
 
 class MobileCountView(View):
     """判断用户名是否重复注册"""
 
-    def get(self, mobile):
+    def get(self, request, mobile):
         count = User.objects.filter(mobile=mobile).count()
-        content = {
-            'code': RETCODE.OK,
-            'errmsg': 'OK',
-            'count': count,
-        }
-        return JsonResponse(content)
+        OK['count'] = count
+        return JsonResponse(OK)
 
 
 class LoginView(View):
@@ -159,17 +153,6 @@ class LogoutView(View):
 
 class UserInfoView(LoginRequiredMixin, View):
     """用户中心"""
-
-    # @method_decorator(login_required)
-    # def get(self, request):
-    #     """提供个人信息界面"""
-    #     # 源码的方法，实际采用装饰器方法
-    #     # if request.user.is_authenticated:  # 这里返回的不是bool值，不能用布尔值去比较
-    #     #     return render(request, 'user_center_info.html')
-    #     # else:
-    #     #     return redirect(reverse('users:login') + '/?next=/info/')
-    #     return render(request, 'user_center_info.html')
-
     def get(self, request):
         context = {
             'username': request.user.username,
@@ -207,7 +190,7 @@ class EmailView(LoginRequiredMixin, View):
         verify_url = generate_verify_email_url(user)
         send_verify_email.delay(email, verify_url)
 
-        return JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})
+        return JsonResponse(OK)
 
 
 class AddressView(LoginRequiredMixin, View):
@@ -215,4 +198,204 @@ class AddressView(LoginRequiredMixin, View):
 
     def get(self, request):
         """用户收货地址展示"""
-        return render(request, 'user_center_site.html')
+        login_user = request.user
+        addresses = Address.objects.filter(user=login_user, is_deleted=False)
+
+        address_dict_list = []
+        for address in addresses:
+            address_dict = {
+                "id": address.id,
+                "title": address.title,
+                "receiver": address.receiver,
+                "province": address.province.name,
+                "city": address.city.name,
+                "district": address.district.name,
+                "place": address.place,
+                "mobile": address.mobile,
+                "tel": address.tel,
+                "email": address.email
+            }
+            address_dict_list.append(address_dict)
+
+        context = {
+            'default_address_id': login_user.default_address_id,
+            'addresses': address_dict_list
+        }
+        return render(request, 'user_center_site.html', context)
+
+
+class CreateAddressView(LoginRequiredMixin, View):
+    """新增地址"""
+    def post(self, request):
+        """实现新增地址逻辑"""
+        count = request.user.addresses.count()
+        if count >= constants.USER_ADDRESS_COUNTS_LIMIT:
+            return JsonResponse({'code': RETCODE.THROTTLINGERR, 'errmsg': '超过地址数量上限'})
+
+        data_list = getdata(request)
+
+        ret = forbidden(data_list)
+        if ret:
+            return HttpResponseForbidden(ret)
+
+        try:
+            address = Address.objects.create(
+                user=request.user,
+                title=data_list[0],
+                receiver=data_list[0],
+                province_id=data_list[1],
+                city_id=data_list[2],
+                district_id=data_list[3],
+                place=data_list[4],
+                mobile=data_list[5],
+                tel=data_list[6],
+                email=data_list[7])
+            if not request.user.default_address:
+                request.user.default_address = address
+                request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '新增地址失败'})
+
+        address_dict = {
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email,
+        }
+        OK['address'] = address_dict
+        return JsonResponse(OK)
+
+
+class UpdateDestroyAddressView(LoginRequiredMixin, View):
+    """修改和删除地址"""
+    def put(self, request, address_id):
+        """修改地址"""
+        data_list = getdata(request)
+
+        ret = forbidden(data_list)
+        if ret:
+            return HttpResponseForbidden(ret)
+
+        try:
+            Address.objects.filter(id=address_id).update(
+                user=request.user,
+                title=data_list[0],
+                receiver=data_list[0],
+                province_id=data_list[1],
+                city_id=data_list[2],
+                district_id=data_list[3],
+                place=data_list[4],
+                mobile=data_list[5],
+                tel=data_list[6],
+                email=data_list[7])
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '更新地址失败'})
+
+        address = Address.objects.get(id=address_id)
+        address_dict = {
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email
+        }
+        OK['address'] = address_dict
+        return JsonResponse(OK)
+
+    def delete(self, request, address_id):
+        """删除地址"""
+        try:
+            address = Address.objects.get(id=address_id)
+
+            address.is_deleted = True
+            address.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '删除地址失败'})
+
+        return JsonResponse(OK)
+
+
+class DefaultAddressView(LoginRequiredMixin, View):
+    """设置默认地址"""
+    def put(self, request, address_id):
+        """设置默认地址"""
+        try:
+            address = Address.objects.get(id=address_id)
+
+            request.user.default_address = address
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '设置默认地址失败'})
+        return JsonResponse(OK)
+
+
+class UpdateTitleAddressView(LoginRequiredMixin, View):
+    """设置地址标题"""
+    def put(self, request, address_id):
+        """设置地址标题"""
+        json_dict = json.loads(request.body.decode())
+        title = json_dict.get('title')
+
+        try:
+            address = Address.objects.get(id=address_id)
+
+            address.title = title
+            address.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '设置地址标题失败'})
+
+        return JsonResponse(OK)
+
+
+class ChangePasswordView(LoginRequiredMixin, View):
+    """修改密码"""
+    def get(self, request):
+        """展示修改密码界面"""
+        return render(request, 'user_center_pass.html')
+
+    def post(self, request):
+        """实现修改密码逻辑"""
+        old_pwd = request.POST.get('old_pwd')
+        new_pwd = request.POST.get('new_pwd')
+        new_pwd2 = request.POST.get('new_cpwd')
+
+        user = request.user
+        if not all([old_pwd, new_pwd, new_pwd2]):
+            return HttpResponseForbidden('缺少必传参数')
+        if not user.check_password(old_pwd):
+            return render(request, 'user_center_pass.html', {'origin_pwd_errmsg':'原始密码错误'})
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', new_pwd):
+            return HttpResponseForbidden('密码最少8位，最长20位')
+        if new_pwd != new_pwd2:
+            return HttpResponseForbidden('两次输入的密码不一致')
+        if old_pwd == new_pwd:
+            return HttpResponseForbidden('不能设置相同的密码')
+
+        try:
+            user.set_password(new_pwd)
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '设置密码失败'})
+
+        logout(request)
+        response = redirect(reverse('users:login'))
+        response.delete_cookie('username')
+
+        return response

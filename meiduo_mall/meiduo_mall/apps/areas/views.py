@@ -2,8 +2,8 @@ import logging
 
 from django.core.cache import cache
 from django.http import JsonResponse
-from django.shortcuts import render
 from django.views import View
+
 from areas.models import Area
 from meiduo_mall.utils.response_code import RETCODE
 
@@ -55,4 +55,4 @@ class AreasView(View):
 
                 cache.set('sub_area_' + area_id, sub_data, 3600)
 
-            return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
+            return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'sub_data': sub_data})

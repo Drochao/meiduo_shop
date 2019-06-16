@@ -2,10 +2,10 @@ import logging
 import re
 
 from QQLoginTool.QQtool import OAuthQQ
+from django.conf import settings
 from django.contrib.auth import login
 from django.db import DatabaseError
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseServerError
-from django.conf import settings
 from django.shortcuts import redirect, render
 from django.views import View
 from django_redis import get_redis_connection
@@ -21,6 +21,7 @@ logger = logging.getLogger('django')
 
 class QQAuthURLView(View):
     """提供QQ登录url"""
+
     def get(self, request):
         # next表示进入登陆页面之前的那个页面
         next = request.GET.get('next', '/')
@@ -32,13 +33,14 @@ class QQAuthURLView(View):
 
         login_url = auth_qq.get_qq_url()
         return JsonResponse({
-                'code': RETCODE.OK,
-                'errmsg': 'OK',
-                'login_url': login_url})
+            'code': RETCODE.OK,
+            'errmsg': 'OK',
+            'login_url': login_url})
 
 
 class QQAuthView(View):
     """QQ登录成功后的回调处理"""
+
     def get(self, request):
         """Oauth2.0认证"""
         # 先获取验证码
@@ -90,7 +92,7 @@ class QQAuthView(View):
             return HttpResponseForbidden('请输入8-20个数字的密码')
         # 判断手机号是否合法
         if not re.match(r'^1[3-9]\d{9}$', mobile):
-            return HttpResponseForbidden('两次输入的密码不一致')
+            return HttpResponseForbidden('请输入正确的手机号')
         # 判断短信验证码是否正确
         redis_conn = get_redis_connection('verify_code')
 
@@ -109,7 +111,7 @@ class QQAuthView(View):
         try:
             user = User.objects.get(mobile=mobile)
         except User.DoesNotExist:
-            user = User.objects.create_user(username=mobile, password=password,mobile=mobile)
+            user = User.objects.create_user(username=mobile, password=password, mobile=mobile)
         else:
             if not user.check_password(password):
                 return render(request, 'oauth_callback.html', {'qq_login_errmsg': 'QQ登录失败'})
@@ -130,4 +132,3 @@ class QQAuthView(View):
         response.set_cookie('username', user.username, max_age=constants.MAX_AGE)
 
         return response
-

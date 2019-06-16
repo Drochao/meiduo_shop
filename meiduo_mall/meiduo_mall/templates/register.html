@@ -19,9 +19,8 @@
                 <ul>
                     <li>
                         <label>用户名:</label>
-                        <span class="error_tip" v-show="error_name">[[ error_name_message ]]</span>
                         <input type="text" name="username" id="user_name" v-model="username" @blur="check_username">
-
+                        <span class="error_tip" v-show="error_name">[[ error_name_message ]]</span>
                     </li>
                     <li>
                         <label>密码:</label>

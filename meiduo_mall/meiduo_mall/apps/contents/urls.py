@@ -1,4 +1,3 @@
-
 from django.urls import path
 
 from meiduo_mall.apps.contents import views

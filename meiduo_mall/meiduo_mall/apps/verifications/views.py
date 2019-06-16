@@ -1,5 +1,6 @@
-import random
 import logging
+import random
+
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, \
     HttpResponseServerError
 from django.shortcuts import redirect
@@ -18,6 +19,7 @@ logger = logging.getLogger('django')
 
 class ImageCodeView(View):
     """图形验证码"""
+
     def get(self, request, uuid):
         # 生成图形验证码
         name, text, image = captcha.generate_captcha()
@@ -32,6 +34,7 @@ class ImageCodeView(View):
 
 class SMSCodeView(View):
     """短信验证码"""
+
     def get(self, request, mobile):
         # 0 创建redis连接对象
         redis_conn = get_redis_connection('verify_code')
@@ -94,6 +97,7 @@ class SMSCodeView(View):
 
 class VerifyEmailView(View):
     """验证邮箱"""
+
     def get(self, request):
         """实现邮箱验证逻辑"""
         token = request.GET.get('token')
