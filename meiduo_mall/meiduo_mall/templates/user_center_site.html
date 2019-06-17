@@ -82,19 +82,8 @@
             </div>
         </div>
     </div>
-    <div class="footer">
-        <div class="foot_link">
-            <a href="#">关于我们</a>
-            <span>|</span>
-            <a href="#">联系我们</a>
-            <span>|</span>
-            <a href="#">招聘人才</a>
-            <span>|</span>
-            <a href="#">友情链接</a>
-        </div>
-        <p>CopyRight © 2016 北京美多商业股份有限公司 All Rights Reserved</p>
-        <p>电话：010-****888 京ICP备*******8号</p>
-    </div>
+{% endblock body %}
+{% block script %}
     <div class="pop_con" v-show="is_show_edit" v-cloak>
         <div class="site_con site_pop">
             <div class="site_pop_title">
@@ -155,4 +144,4 @@
 <script type="text/javascript" src="{{ static ('js/user_center_site.js') }}"></script>
 </body>
 </html>
-{% endblock body %}
+{% endblock %}

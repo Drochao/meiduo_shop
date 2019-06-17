@@ -4,7 +4,6 @@ import re
 
 from django.conf import settings
 from django.contrib.auth import login, logout
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -13,6 +12,7 @@ from django_redis import get_redis_connection
 
 from celery_tasks.email.tasks import send_verify_email
 from meiduo_mall.utils.response_code import RETCODE
+from meiduo_mall.utils.views import LoginRequiredView
 from users import constants
 from users.models import User, Address
 from users.utils import UsernameMobileAuthBackend, generate_verify_email_url, getdata, forbidden
@@ -151,7 +151,7 @@ class LogoutView(View):
         return response
 
 
-class UserInfoView(LoginRequiredMixin, View):
+class UserInfoView(LoginRequiredView):
     """用户中心"""
     def get(self, request):
         context = {
@@ -163,7 +163,7 @@ class UserInfoView(LoginRequiredMixin, View):
         return render(request, 'user_center_info.html', context=context)
 
 
-class EmailView(LoginRequiredMixin, View):
+class EmailView(LoginRequiredView):
     """添加邮箱"""
 
     def put(self, request):
@@ -171,18 +171,16 @@ class EmailView(LoginRequiredMixin, View):
         json_dict = json.loads(request.body.decode())
         email = json_dict.get('email')
 
-        if not email:
-            return JsonResponse({'code': RETCODE.NECESSARYPARAMERR, 'errmsg': '缺少email参数'})
-
         if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
-            return JsonResponse({'code': RETCODE.EMAILERR, 'errmsg': '邮箱格式错误'})
+            return HttpResponseForbidden('邮箱格式错误')
 
         user = request.user
 
-        User.objects.filter(username=user.username, email='').update(email=email)
         try:
             user.email = email
             user.save()
+            # 本来是要更新比较好，但是前端一旦存入数据库直接禁止修改
+            # User.objects.filter(username=user.username, email='').update(email=email)
         except Exception as e:
             logger.error(e)
             return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '添加邮箱失败'})
@@ -193,7 +191,7 @@ class EmailView(LoginRequiredMixin, View):
         return JsonResponse(OK)
 
 
-class AddressView(LoginRequiredMixin, View):
+class AddressView(LoginRequiredView):
     """用户收货地址"""
 
     def get(self, request):
@@ -224,7 +222,7 @@ class AddressView(LoginRequiredMixin, View):
         return render(request, 'user_center_site.html', context)
 
 
-class CreateAddressView(LoginRequiredMixin, View):
+class CreateAddressView(LoginRequiredView):
     """新增地址"""
     def post(self, request):
         """实现新增地址逻辑"""
@@ -273,7 +271,7 @@ class CreateAddressView(LoginRequiredMixin, View):
         return JsonResponse(OK)
 
 
-class UpdateDestroyAddressView(LoginRequiredMixin, View):
+class UpdateDestroyAddressView(LoginRequiredView):
     """修改和删除地址"""
     def put(self, request, address_id):
         """修改地址"""
@@ -329,7 +327,7 @@ class UpdateDestroyAddressView(LoginRequiredMixin, View):
         return JsonResponse(OK)
 
 
-class DefaultAddressView(LoginRequiredMixin, View):
+class DefaultAddressView(LoginRequiredView):
     """设置默认地址"""
     def put(self, request, address_id):
         """设置默认地址"""
@@ -344,7 +342,7 @@ class DefaultAddressView(LoginRequiredMixin, View):
         return JsonResponse(OK)
 
 
-class UpdateTitleAddressView(LoginRequiredMixin, View):
+class UpdateTitleAddressView(LoginRequiredView):
     """设置地址标题"""
     def put(self, request, address_id):
         """设置地址标题"""
@@ -363,7 +361,7 @@ class UpdateTitleAddressView(LoginRequiredMixin, View):
         return JsonResponse(OK)
 
 
-class ChangePasswordView(LoginRequiredMixin, View):
+class ChangePasswordView(LoginRequiredView):
     """修改密码"""
     def get(self, request):
         """展示修改密码界面"""

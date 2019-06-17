@@ -9,6 +9,3 @@ class IndexView(View):
     def get(self, request):
         """渲染主页"""
         return render(request, 'index.html')
-
-    def post(self, request):
-        pass
