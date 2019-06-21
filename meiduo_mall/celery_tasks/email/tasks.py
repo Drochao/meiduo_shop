@@ -1,8 +1,8 @@
 import logging
 from django.core.mail import send_mail
-
+from django.conf import settings
 from celery_tasks.main import celery_app
-from meiduo_mall.settings import dev
+
 
 logger = logging.getLogger('send_email')
 @celery_app.task(bind=True, name='send_verify_email', retry_backoff=3)
@@ -14,7 +14,7 @@ def send_verify_email(self, to_email, verify_url):
                    f'<p><a href="{verify_url}">{verify_url}<a></p>'
 
     try:
-        send_mail(subject, '', dev.EMAIL_FROM, [to_email], html_message=html_message)
+        send_mail(subject, '', settings.EMAIL_FROM, [to_email], html_message=html_message)
     except Exception as e:
         logger.error(e)
 

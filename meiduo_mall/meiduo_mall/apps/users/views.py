@@ -205,8 +205,11 @@ class AddressView(LoginRequiredView):
                 "id": address.id,
                 "title": address.title,
                 "receiver": address.receiver,
+                "province_id": address.province_id,
                 "province": address.province.name,
+                "city_id": address.city_id,
                 "city": address.city.name,
+                "district_id": address.district_id,
                 "district": address.district.name,
                 "place": address.place,
                 "mobile": address.mobile,
@@ -259,8 +262,11 @@ class CreateAddressView(LoginRequiredView):
             "id": address.id,
             "title": address.title,
             "receiver": address.receiver,
+            'province_id': address.province_id,
             "province": address.province.name,
+            'city_id': address.city_id,
             "city": address.city.name,
+            'district_id': address.district_id,
             "district": address.district.name,
             "place": address.place,
             "mobile": address.mobile,
@@ -317,13 +323,12 @@ class UpdateDestroyAddressView(LoginRequiredView):
         """删除地址"""
         try:
             address = Address.objects.get(id=address_id)
-
-            address.is_deleted = True
-            address.save()
         except Exception as e:
             logger.error(e)
             return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '删除地址失败'})
 
+        address.is_deleted = True
+        address.save()
         return JsonResponse(OK)
 
 
@@ -333,12 +338,12 @@ class DefaultAddressView(LoginRequiredView):
         """设置默认地址"""
         try:
             address = Address.objects.get(id=address_id)
-
-            request.user.default_address = address
-            request.user.save()
         except Exception as e:
             logger.error(e)
             return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '设置默认地址失败'})
+
+        request.user.default_address = address
+        request.user.save()
         return JsonResponse(OK)
 
 
@@ -346,18 +351,19 @@ class UpdateTitleAddressView(LoginRequiredView):
     """设置地址标题"""
     def put(self, request, address_id):
         """设置地址标题"""
+        # 获取请求数据
         json_dict = json.loads(request.body.decode())
         title = json_dict.get('title')
 
         try:
             address = Address.objects.get(id=address_id)
 
-            address.title = title
-            address.save()
         except Exception as e:
             logger.error(e)
             return JsonResponse({'code': RETCODE.DBERR, 'errmsg': '设置地址标题失败'})
 
+        address.title = title
+        address.save()
         return JsonResponse(OK)
 
 
@@ -376,7 +382,8 @@ class ChangePasswordView(LoginRequiredView):
         user = request.user
         if not all([old_pwd, new_pwd, new_pwd2]):
             return HttpResponseForbidden('缺少必传参数')
-        if not user.check_password(old_pwd):
+        # 用False性能更高
+        if user.check_password(old_pwd) is False:
             return render(request, 'user_center_pass.html', {'origin_pwd_errmsg':'原始密码错误'})
         if not re.match(r'^[0-9A-Za-z]{8,20}$', new_pwd):
             return HttpResponseForbidden('密码最少8位，最长20位')
@@ -397,3 +404,4 @@ class ChangePasswordView(LoginRequiredView):
         response.delete_cookie('username')
 
         return response
+        # return redirect(reverse('users:logout'))
