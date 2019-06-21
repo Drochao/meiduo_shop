@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from django.views import View
 
-from areas.models import Area
+from .models import Area
 from meiduo_mall.utils.response_code import RETCODE
 
 logger = logging.getLogger('django')

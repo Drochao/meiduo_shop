@@ -32,7 +32,7 @@ class GoodsChannelGroup(BaseModel):
 
 class GoodsChannel(BaseModel):
     """商品频道"""
-    group = models.ForeignKey(GoodsChannelGroup, verbose_name='频道组名')
+    group = models.ForeignKey(GoodsChannelGroup, verbose_name='频道组名', on_delete=models.CASCADE)
     category = models.ForeignKey(GoodsCategory, on_delete=models.CASCADE, verbose_name='顶级商品类别')
     url = models.CharField('频道页面链接', max_length=50)
     sequence = models.IntegerField('组内顺序')

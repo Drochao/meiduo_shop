@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from meiduo_mall.utils.response_code import RETCODE
 from users import constants
 from users.models import User
 

@@ -26,7 +26,7 @@ SECRET_KEY = 'rs(4mn6l6=@giajcj5)(3u6uz9_a#7f@+fl-wy24akaubp*9gr'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.meiduo.site']
+ALLOWED_HOSTS = ['www.meiduo.site', '192.168.13.74']
 
 # Application definition
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'users.apps.UsersConfig',
     'contents.apps.ContentsConfig',
     'verifications.apps.VerificationsConfig',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'oauth.apps.OauthConfig',
     'areas.apps.AreasConfig',
+    'goods.apps.GoodsConfig'
 ]
 
 MIDDLEWARE = [
@@ -102,7 +104,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'meiduo_27',
-        'HOST': '',
+        'HOST': '192.168.13.48',
         'PORT': '',
         'USER': 'chao',
         'PASSWORD': 'qinhan',

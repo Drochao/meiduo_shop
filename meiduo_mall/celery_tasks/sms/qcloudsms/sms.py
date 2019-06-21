@@ -1,5 +1,3 @@
-import socket
-
 from celery_tasks.sms.qcloudsms import constants
 from celery_tasks.sms.qcloudsms_py.qcloudsms_py.sms import SmsSingleSender
 
