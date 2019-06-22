@@ -35,4 +35,8 @@ class Content(BaseModel):
 
     def __str__(self):
         return self.category.name + ': ' + self.title
+    #
+    # @property
+    # def url(self):
+    #     return "http://192.168.13.158:8888/" + self.image.url
 
