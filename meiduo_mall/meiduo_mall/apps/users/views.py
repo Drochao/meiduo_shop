@@ -11,6 +11,7 @@ from django.views import View
 from django_redis import get_redis_connection
 
 from celery_tasks.email.tasks import send_verify_email
+from goods.models import SKU
 from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.views import LoginRequiredView
 from users import constants
@@ -405,3 +406,53 @@ class ChangePasswordView(LoginRequiredView):
 
         return response
         # return redirect(reverse('users:logout'))
+
+
+class UserBrowseHistory(View):
+    """商品浏览记录"""
+    def post(self, request):
+        if request.user.is_authenticated:
+            json_dict = json.loads(request.body.decode())
+            sku_id = json_dict.get('sku_id')
+
+            try:
+                sku = SKU.objects.get(id=sku_id)
+            except SKU.DoesNotExist:
+                return HttpResponseForbidden('sku_id不存在')
+
+            redis_conn = get_redis_connection('history')
+            pl = redis_conn.pipeline()
+
+            user = request.user
+            key = 'history_%s' % user.id
+
+            pl.lrem(key, 0, sku_id)
+
+            pl.lpush(key, sku_id)
+
+            pl.ltrim(key, 0, 4)
+
+            pl.execute()
+
+            return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
+        else:
+            return JsonResponse({'code': RETCODE.SESSIONERR, 'errmsg': '用户未登录'})
+
+    def get(self, request):
+        """查询商品浏览记录"""
+        if request.user.is_authenticated:
+            redis_conn = get_redis_connection('history')
+            sku_ids = redis_conn.lrange('history_%s' % request.user.id, 0, -1)
+
+            sku_list = []
+            for sku_id in sku_ids:
+                sku = SKU.objects.get(id=sku_id)
+                sku_list.append({
+                    'id': sku.id,
+                    'name': sku.name,
+                    'default_image_url': sku.default_image.url,
+                    'price': sku.price
+                })
+            return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'skus': sku_list})
+        else:
+            return JsonResponse({'code': RETCODE.SESSIONERR, 'errmsg': '用户未登录', 'skus': []})

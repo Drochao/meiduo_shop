@@ -26,7 +26,7 @@ SECRET_KEY = 'rs(4mn6l6=@giajcj5)(3u6uz9_a#7f@+fl-wy24akaubp*9gr'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.meiduo.site', '192.168.13.74']
+ALLOWED_HOSTS = ['www.meiduo.site', '192.168.13.74', '127.0.0.1']
 
 # Application definition
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
@@ -34,10 +34,10 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+
+    'django.contrib.contenttypes',    'django.contrib.staticfiles',
     'django.contrib.sites',
     'users.apps.UsersConfig',
     'contents.apps.ContentsConfig',
@@ -172,6 +172,13 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
+    "history": {  # 历史纪录
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
 }
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
@@ -238,3 +245,9 @@ EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
 QQ_CLIENT_ID = '101518219'
 QQ_CLIENT_SECRET = '418d84ebdc7241efb79536886ae95224'
 QQ_REDIRECT_URI = 'http://www.meiduo.site:8000/oauth_callback'
+
+# 指定自定义的Django文件存储类
+DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
+
+# FastDFS相关参数
+FDFS_BASE_URL = 'http://image.meiduo.site:8888/'

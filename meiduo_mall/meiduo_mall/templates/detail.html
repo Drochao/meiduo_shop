@@ -81,11 +81,11 @@
                             {% endfor %}
                         </div>
                         <div class="level2">
-                            {% for sub_cat in category.cat_subs %}
+                            {% for sub_cat in category.sub_cats %}
                             <div class="list_group">
                                 <div class="group_name fl">{{ sub_cat.name }} &gt;</div>
                                 <div class="group_detail fl">
-                                    {% for sub_cat3 in sub_cat.cat_subs %}
+                                    {% for sub_cat3 in sub_cat.sub_cats %}
                                     <a href="/list/{{ sub_cat3.id }}/1/">{{ sub_cat3.name }}</a>
                                     {% endfor %}
                                 </div>
@@ -116,13 +116,13 @@
     </div>
 
     <div class="goods_detail_con clearfix">
-        <div class="goods_detail_pic fl"><img src="/static/images/goods_450.jpg"></div>
+        <div class="goods_detail_pic fl"><img src="{{ sku.default_image.url }}"></div>
         <div class="goods_detail_list fr">
-            <h3>Apple MacBook Pro 13.3英寸笔记本 银色</h3>
-            <p>【全新2017款】MacBook Pro,一身才华，一触，即发 了解【黑五返场特惠】 更多产品请点击【美多官方Apple旗舰店】</p>
+            <h3>{{ sku.name }}</h3>
+            <p>{{ sku.caption }}</p>
             <div class="price_bar">
-                <span class="show_pirce">¥<em>11388.00</em></span>
-                <a href="javascript:;" class="goods_judge">449人评价</a>
+                <span class="show_pirce">¥<em>{{ sku.price }}</em></span>
+                <a href="javascript:;" class="goods_judge">{{ sku.comments }}人评价</a>
             </div>
             <div class="goods_num clearfix">
                 <div class="num_name fl">数 量：</div>
@@ -132,22 +132,21 @@
                     <a @click="on_minus" class="minus fr">-</a>
                 </div>
             </div>
+            {% for spec in spec_qs %}
             <div class="type_select">
-                <label>屏幕尺寸:</label>
-                <a href="javascript:;" class="select">13.3英寸</a>
-                <a href="javascript:;">15.4英寸</a>
+                <label>{{ spec.name }}:</label>
+                {% for option in spec.spec_options %}
+                    {% if option.sku_id == sku.id %}
+                        <a href="javascript:;" class="select">{{ option.value }}</a>
+                    {% elif option.sku_id %}
+                        <a href="/detail/{{ option.sku_id }}/">{{ option.value }}</a>
+                    {% else %}
+                        <a href="#" style="border: #9f9f9f dashed 1px" title="此商品无货">{{ option.value }}</a>
+                    {% endif %}
+                {% endfor %}
             </div>
-            <div class="type_select">
-                <label>颜色:</label>
-                <a href="javascript:;" class="select">深灰色</a>
-                <a href="javascript:;">银</a>
-            </div>
-            <div class="type_select">
-                <label>版本:</label>
-                <a href="javascript:;" class="select">core i5/8G内存/256G存储</a>
-                <a href="javascript:;">core i5/8G内存/128G存储</a>
-                <a href="javascript:;">core i5/8G内存/512G存储/Multi-Touch Bar</a>
-            </div>
+            {% endfor %}
+
             <div class="total">总价：<em>[[ sku_amount ]]元</em></div>
             <div class="operate_btn">
                 <a href="javascript:;" class="add_cart" id="add_cart">加入购物车</a>
@@ -232,9 +231,9 @@
     </div>
 </div>
 <script>
-    var price = "";
-    var category_id = "";
-    var sku_id = "";
+    var price = "{{ sku.price }}";
+    var category_id = "{{ category.id }}";
+    var sku_id = "{{ sku.id }}";
 </script>
 <script type="text/javascript" src="/static/js/common.js"></script>
 <script type="text/javascript" src="/static/js/base.js"></script>
