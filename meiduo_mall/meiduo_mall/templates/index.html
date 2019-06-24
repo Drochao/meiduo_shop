@@ -44,19 +44,14 @@
                 </ul>
             </div>
 
-            <div class="guest_cart fr">
+            <div @mouseenter="get_carts" class="guest_cart fr" v-cloak>
                 <a href="{{ url ('carts:cart') }}" class="cart_name fl">我的购物车</a>
-                <div class="goods_count fl" id="show_count">2</div>
+                <div class="goods_count fl" id="show_count">[[ cart_total_count ]]</div>
                 <ul class="cart_goods_show">
-                    <li>
-                        <img src="{{ static ('images/goods/goods001.jpg') }}" alt="商品图片">
-                        <h4>华为 HUAWEI P10 Plus 6GB+64GB 钻雕金 移动联通电信4G手机 双卡双待</h4>
-                        <div>1</div>
-                    </li>
-                    <li>
-                        <img src="{{ static ('images/goods/goods002.jpg') }}" alt="商品图片">
-                        <h4>Apple iPhoneX 64GB 深空灰色 移动联通电信4G手机</h4>
-                        <div>1</div>
+                    <li v-for="sku in carts">
+                        <img :src="sku.default_image_url" alt="商品图片">
+                        <h4>[[ sku.name ]]</h4>
+                        <div>[[ sku.count ]]</div>
                     </li>
                 </ul>
             </div>

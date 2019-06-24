@@ -61,6 +61,7 @@ class HotGoodsView(View):
     """商品热销排行"""
     def get(self, request, category_id):
         """提供商品热销排行JSON数据"""
+        #
         skus = SKU.objects.filter(category_id=category_id, is_launched=True)
 
         hot_skus = []
@@ -72,7 +73,6 @@ class HotGoodsView(View):
                 'price': sku.price
             })
         return http.JsonResponse({'code':RETCODE.OK, 'errmsg':'OK', 'hot_skus':hot_skus})
-
 
 class DetailView(View):
     """商品详情页"""
@@ -141,6 +141,6 @@ class DetailVisitView(View):
             counts_data = GoodsVisitCount.objects.get(date=today_date, category_id=category_id)
         except GoodsVisitCount.DoesNotExist:
             counts_data = GoodsVisitCount(category_id=category_id)
-            counts_data.count += 1
-            counts_data.save()
+        counts_data.count += 1
+        counts_data.save()
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})

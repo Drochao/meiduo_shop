@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import login, logout
@@ -10,6 +11,7 @@ from django.urls import reverse
 from django.views import View
 from django_redis import get_redis_connection
 
+from carts.utils import merge_cart_cookie_to_redis
 from celery_tasks.email.tasks import send_verify_email
 from goods.models import SKU
 from meiduo_mall.utils.response_code import RETCODE
@@ -134,6 +136,8 @@ class LoginView(View):
         # 登录时用户名写入到cookie，有效期15天
         response.set_cookie('username', user.username, max_age=(
             None if not remembered else settings.SESSION_COOKIE_AGE))
+
+        merge_cart_cookie_to_redis(request, response)
 
         return response
 
@@ -456,3 +460,45 @@ class UserBrowseHistory(View):
             return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'skus': sku_list})
         else:
             return JsonResponse({'code': RETCODE.SESSIONERR, 'errmsg': '用户未登录', 'skus': []})
+
+
+class OrderSettlementView(LoginRequiredView):
+    """结算订单"""
+
+    def get(self, request):
+        """提供订单结算页面"""
+        user = request.user
+        try:
+            addresses = Address.objects.filter(user=request.user, is_deleted=False)
+        except Address.DoesNotExist:
+            addresses = None
+
+        redis_conn = get_redis_connection('carts')
+        redis_cart = redis_conn.hgetall(f'carts_{user.id}')
+        cart_selected = redis_conn.smembers(f'selected_{user.id}')
+        cart = {}
+        for sku_id in cart_selected:
+            cart[int(sku_id)] = int(redis_cart[sku_id])
+
+        total_count = 0
+        total_amount = Decimal(0.00)
+
+        skus = SKU.objects.filter(id__in=cart.keys())
+        for sku in skus:
+            sku.count = cart[sku.id]
+            sku.amount = sku.count * sku.price
+
+            total_count += sku.count
+            total_amount += sku.count * sku.price
+
+        freight = Decimal('10.00')
+
+        context = {
+            'addresses': addresses,
+            'skus': skus,
+            'total_count': total_count,
+            'total_amount': total_amount,
+            'freight': freight,
+            'payment_amount': total_amount + freight
+        }
+        return render(request, 'place_order.html', context)

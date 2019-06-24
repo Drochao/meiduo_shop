@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django_redis import get_redis_connection
 
+from carts.utils import merge_cart_cookie_to_redis
 from meiduo_mall.utils.response_code import RETCODE
 from oauth import constants
 from oauth.models import OAuthQQUser
@@ -74,8 +75,10 @@ class QQAuthView(View):
             user = oauth_model.user
 
             login(request, user)
+
             response = redirect(request.GET.get('state', '/'))
             response.set_cookie('username', user.username, max_age=settings.SESSION_COOKIE_AGE)
+            merge_cart_cookie_to_redis(request=request, response=response)
             return response
 
     def post(self, request):
@@ -130,5 +133,7 @@ class QQAuthView(View):
 
         # 注册时用户名写入到cookie，有效期15天
         response.set_cookie('username', user.username, max_age=constants.MAX_AGE)
+
+        merge_cart_cookie_to_redis(request, response)
 
         return response
