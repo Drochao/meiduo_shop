@@ -1,7 +1,6 @@
 import json
 import logging
 import re
-from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import login, logout
@@ -158,6 +157,7 @@ class LogoutView(View):
 
 class UserInfoView(LoginRequiredView):
     """用户中心"""
+
     def get(self, request):
         context = {
             'username': request.user.username,
@@ -232,6 +232,7 @@ class AddressView(LoginRequiredView):
 
 class CreateAddressView(LoginRequiredView):
     """新增地址"""
+
     def post(self, request):
         """实现新增地址逻辑"""
         count = request.user.addresses.count()
@@ -284,6 +285,7 @@ class CreateAddressView(LoginRequiredView):
 
 class UpdateDestroyAddressView(LoginRequiredView):
     """修改和删除地址"""
+
     def put(self, request, address_id):
         """修改地址"""
         data_list = getdata(request)
@@ -339,6 +341,7 @@ class UpdateDestroyAddressView(LoginRequiredView):
 
 class DefaultAddressView(LoginRequiredView):
     """设置默认地址"""
+
     def put(self, request, address_id):
         """设置默认地址"""
         try:
@@ -354,6 +357,7 @@ class DefaultAddressView(LoginRequiredView):
 
 class UpdateTitleAddressView(LoginRequiredView):
     """设置地址标题"""
+
     def put(self, request, address_id):
         """设置地址标题"""
         # 获取请求数据
@@ -374,6 +378,7 @@ class UpdateTitleAddressView(LoginRequiredView):
 
 class ChangePasswordView(LoginRequiredView):
     """修改密码"""
+
     def get(self, request):
         """展示修改密码界面"""
         return render(request, 'user_center_pass.html')
@@ -389,7 +394,7 @@ class ChangePasswordView(LoginRequiredView):
             return HttpResponseForbidden('缺少必传参数')
         # 用False性能更高
         if user.check_password(old_pwd) is False:
-            return render(request, 'user_center_pass.html', {'origin_pwd_errmsg':'原始密码错误'})
+            return render(request, 'user_center_pass.html', {'origin_pwd_errmsg': '原始密码错误'})
         if not re.match(r'^[0-9A-Za-z]{8,20}$', new_pwd):
             return HttpResponseForbidden('密码最少8位，最长20位')
         if new_pwd != new_pwd2:
@@ -414,6 +419,7 @@ class ChangePasswordView(LoginRequiredView):
 
 class UserBrowseHistory(View):
     """商品浏览记录"""
+
     def post(self, request):
         if request.user.is_authenticated:
             json_dict = json.loads(request.body.decode())
@@ -460,45 +466,3 @@ class UserBrowseHistory(View):
             return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'skus': sku_list})
         else:
             return JsonResponse({'code': RETCODE.SESSIONERR, 'errmsg': '用户未登录', 'skus': []})
-
-
-class OrderSettlementView(LoginRequiredView):
-    """结算订单"""
-
-    def get(self, request):
-        """提供订单结算页面"""
-        user = request.user
-        try:
-            addresses = Address.objects.filter(user=request.user, is_deleted=False)
-        except Address.DoesNotExist:
-            addresses = None
-
-        redis_conn = get_redis_connection('carts')
-        redis_cart = redis_conn.hgetall(f'carts_{user.id}')
-        cart_selected = redis_conn.smembers(f'selected_{user.id}')
-        cart = {}
-        for sku_id in cart_selected:
-            cart[int(sku_id)] = int(redis_cart[sku_id])
-
-        total_count = 0
-        total_amount = Decimal(0.00)
-
-        skus = SKU.objects.filter(id__in=cart.keys())
-        for sku in skus:
-            sku.count = cart[sku.id]
-            sku.amount = sku.count * sku.price
-
-            total_count += sku.count
-            total_amount += sku.count * sku.price
-
-        freight = Decimal('10.00')
-
-        context = {
-            'addresses': addresses,
-            'skus': skus,
-            'total_count': total_count,
-            'total_amount': total_amount,
-            'freight': freight,
-            'payment_amount': total_amount + freight
-        }
-        return render(request, 'place_order.html', context)

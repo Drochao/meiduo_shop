@@ -36,9 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
-
-    'django.contrib.contenttypes',    'django.contrib.staticfiles',
-    'django.contrib.sites',
+    'django.contrib.contenttypes',
+    'django.contrib.staticfiles',
     'users.apps.UsersConfig',
     'contents.apps.ContentsConfig',
     'verifications.apps.VerificationsConfig',
@@ -46,7 +45,9 @@ INSTALLED_APPS = [
     'crispy_forms',
     'oauth.apps.OauthConfig',
     'areas.apps.AreasConfig',
-    'goods.apps.GoodsConfig'
+    'orders.apps.OrdersConfig',
+    'goods.apps.GoodsConfig',
+    'haystack',
 ]
 
 MIDDLEWARE = [
@@ -258,3 +259,16 @@ DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
 
 # FastDFS相关参数
 FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.103.210:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
+    },
+}
+
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+
