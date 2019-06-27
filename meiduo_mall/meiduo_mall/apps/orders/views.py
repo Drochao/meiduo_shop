@@ -2,8 +2,9 @@ import json
 import logging
 from decimal import Decimal
 
+from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.utils import timezone
 from django_redis import get_redis_connection
@@ -11,6 +12,7 @@ from django_redis import get_redis_connection
 from goods.models import SKU
 from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.views import LoginRequiredView
+from orders import constants
 from orders.models import OrderInfo, OrderGoods
 from users.models import Address
 
@@ -24,15 +26,20 @@ class OrderSettlementView(LoginRequiredView):
     def get(self, request):
         """提供订单结算页面"""
         user = request.user
-        try:
-            addresses = Address.objects.filter(user=request.user, is_deleted=False)
-        except Address.DoesNotExist:
+        # 查询当前登陆用户的所有收货地址
+        addresses = Address.objects.filter(user=request.user, is_deleted=False)
+        # 判断用户是否有收获地址
+        if not addresses:
             addresses = None
-
+        # 创建redis连接对象
         redis_conn = get_redis_connection('carts')
+        # 获取redis购物车的hash数据
         redis_cart = redis_conn.hgetall(f'carts_{user.id}')
+        # 获取勾选状态，set集合数据
         cart_selected = redis_conn.smembers(f'selected_{user.id}')
-        cart = {}
+        # 只要勾选商品数据
+        cart = {}  # {sku_id:count, sku_id:count}
+
         for sku_id in cart_selected:
             cart[int(sku_id)] = int(redis_cart[sku_id])
 
@@ -118,15 +125,11 @@ class OrderCommitView(LoginRequiredView):
                         origin_sales = sku.sales
 
                         if buy_count > origin_stock:
+                            transaction.savepoint_rollback(save_id)
                             return JsonResponse({'code': RETCODE.STOCKERR, 'errmsg': '库存不足'})
 
                         new_stock = origin_stock - buy_count
                         new_sales = origin_sales + buy_count
-
-                        # 修改库存和销量
-                        # sku.stock = new_stock
-                        # sku.sales = new_sales
-                        # sku.save()
 
                         result = SKU.objects.filter(id=sku_id, stock=origin_stock).update(stock=new_stock, sales=new_sales)
 
@@ -145,7 +148,7 @@ class OrderCommitView(LoginRequiredView):
 
                         order.total_count += buy_count
                         order.total_amount += (buy_count * sku.price)
-
+                        # 等商品下单成功后结束循环
                         break
 
                 order.total_amount += order.freight
@@ -161,10 +164,6 @@ class OrderCommitView(LoginRequiredView):
             pl.hdel(f'carts_{user.id}', *selected)
             pl.srem(f'selected_{user.id}', *selected)
             pl.execute()
-        # pl = redis_conn.pipeline()
-        # pl.hdel(f'carts_{user.id}', *selected)
-        # pl.srem(f'selected_{user.id}', *selected)
-        # pl.execute()
 
         return JsonResponse({'code': RETCODE.OK, 'errmsg': '下单成功', 'order_id': order.order_id})
 
@@ -179,7 +178,7 @@ class OrderSuccessView(LoginRequiredView):
         payment_method = json_dict.get('pay_method')
 
         try:
-            OrderInfo.objects.get(order_id=order_id, pay_method=payment_amount,total_amount=payment_amount)
+            OrderInfo.objects.get(order_id=order_id, pay_method=payment_method, total_amount=payment_amount)
         except OrderInfo.DoesNotExist:
             return HttpResponseForbidden('订单有误')
 
@@ -189,3 +188,44 @@ class OrderSuccessView(LoginRequiredView):
             'pay_method': payment_method
         }
         return render(request, 'order_success.html', context)
+
+
+class OrderInfoView(LoginRequiredView):
+    """订单信息"""
+
+    def get(self, request, page_num):
+        """渲染订单信息页面"""
+        orders = OrderInfo.objects.filter().order_by('-create_time')
+        # sku_ids = []
+        # for order in orders:
+        #     sku_ids.append(order.sku_id)
+
+        paginator = Paginator(orders, constants.ORDER_LIST_LIMIT)
+
+        try:
+            page_orders = paginator.page(page_num)
+        except EmptyPage:
+            return HttpResponseNotFound('empty page')
+
+        # orders.sku_list = []
+        # for sku_id in sku_ids:
+        #     sku = SKU.objects.get(id=sku_id)
+        #     orders.sku_list.append(sku)
+
+        total_page = paginator.num_pages
+        for order in page_orders:
+            order.sku_list = []
+            goods = order.skus.all()
+            for good in goods:
+                sku = SKU.objects.get(id=good.sku_id)
+                sku.count = 1
+                sku.amount = sku.price
+                order.sku_list.append(sku)
+
+        context = {
+            'page_orders': page_orders,  # 分页后数据
+            'page_num': page_num,  # 当前分页
+            'total_page': total_page,  # 总页数
+        }
+
+        return render(request, 'user_center_order.html', context)

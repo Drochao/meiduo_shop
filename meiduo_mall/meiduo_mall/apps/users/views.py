@@ -466,3 +466,5 @@ class UserBrowseHistory(View):
             return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'skus': sku_list})
         else:
             return JsonResponse({'code': RETCODE.SESSIONERR, 'errmsg': '用户未登录', 'skus': []})
+
+

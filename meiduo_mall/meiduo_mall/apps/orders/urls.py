@@ -5,7 +5,8 @@ from orders import views
 app_name = 'orders'
 
 urlpatterns = [
-    path('orders/settlement/', views.OrderSettlementView.as_view()),
-    path('orders/commit/', views.OrderCommitView.as_view()),
-    path('orders/success/', views.OrderSuccessView.as_view()),
+    path('settlement/', views.OrderSettlementView.as_view(), name='settlement'),
+    path('commit/', views.OrderCommitView.as_view(), name='commit'),
+    path('success/', views.OrderSuccessView.as_view(), name='success'),
+    re_path(r'^info/(?P<page_num>\d+)/$', views.OrderInfoView.as_view(), name='info'),
 ]

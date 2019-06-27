@@ -74,6 +74,7 @@ class HotGoodsView(View):
             })
         return http.JsonResponse({'code':RETCODE.OK, 'errmsg':'OK', 'hot_skus':hot_skus})
 
+
 class DetailView(View):
     """商品详情页"""
 

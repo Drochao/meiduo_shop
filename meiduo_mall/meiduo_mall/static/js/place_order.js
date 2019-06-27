@@ -31,7 +31,7 @@ var vm = new Vue({
                 var url = this.host + '/orders/commit/';
                 axios.post(url, {
                         address_id: this.nowsite,
-                        pay_method: this.pay_method
+                        pay_method: this.parseInt(pay_method)
                     }, {
                         headers:{
                             'X-CSRFToken':getCookie('csrftoken')

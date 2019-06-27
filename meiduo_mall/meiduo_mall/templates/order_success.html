@@ -63,11 +63,13 @@
         </div>
     </div>
 
-    {% if pay_method != '1' %}
-        <div class="order_submit clearfix">
-            <a href="javascript:;" @click="order_payment">确认支付</a>
-        </div>
-    {% endif %}
+    <div class="order_submit clearfix">
+        {% if pay_method == '1' %}
+            <a href="{{ url('contents:index') }}">继续购物</a>
+        {% else %}
+            <a @click="order_payment" class="payment">去支付</a>
+        {% endif %}
+    </div>
 
     <div class="footer">
         <div class="foot_link">

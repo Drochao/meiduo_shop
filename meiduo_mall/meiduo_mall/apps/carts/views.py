@@ -14,10 +14,6 @@ from meiduo_mall.utils.response_code import RETCODE
 
 class CartsView(View):
     """购物车管理"""
-    def __init__(self, request, **kwargs):
-        super().__init__(**kwargs)
-        self.user = request.user
-
     def post(self, request):
         """添加购物车"""
         json_dict = json.loads(request.body.decode())
@@ -43,13 +39,14 @@ class CartsView(View):
                 return HttpResponseForbidden('参数selected 有误')
 
         response = JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
-        if self.user.is_authenticated:
+        user = request.user
+        if user.is_authenticated:
             redis_conn = get_redis_connection('carts')
             pl = redis_conn.pipeline()
-            pl.hincrby(f"carts_{self.user.id}", sku_id, count)
+            pl.hincrby(f"carts_{user.id}", sku_id, count)
 
             if selected:
-                pl.sadd(f'selected_{self.user.id}', sku_id)
+                pl.sadd(f'selected_{user.id}', sku_id)
             pl.execute()
 
         else:
@@ -58,7 +55,7 @@ class CartsView(View):
                 cart_dict = pickle.loads(base64.b64decode(cart_str.encode()))
             else:
                 cart_dict = {}
-
+            # 判断要加入购物车的商品是否已经在购物车里，如有相同商品，累加求和，否则重新赋值
             if sku_id in cart_dict:
                 origin_count = cart_dict[sku_id]['count']
                 count += origin_count
@@ -76,12 +73,13 @@ class CartsView(View):
 
     def get(self, request):
         """展示购物车"""
-        if self.user.is_authenticated:
+        user = request.user
+        if user.is_authenticated:
             redis_conn = get_redis_connection('carts')
 
-            redis_cart = redis_conn.hgetall(f'carts_{self.user.id}')
+            redis_cart = redis_conn.hgetall(f'carts_{user.id}')
 
-            cart_selected = redis_conn.smembers(f'selected_{self.user.id}')
+            cart_selected = redis_conn.smembers(f'selected_{user.id}')
 
             cart_dict = {}
 
@@ -144,37 +142,34 @@ class CartsView(View):
         if selected:
             if not isinstance(selected, bool):
                 return HttpResponseForbidden('参数selected 有误')
+        user = request.user
+        cart_sku = {
+            'id': sku_id,
+            'name': sku.name,
+            'count': count,
+            'selected': selected,
+            'default_image_url': sku.default_image.url,
+            'price': str(sku.price),
+            'amount': str(sku.price * count)
+        }
 
-        if self.user.is_authenticated:
+        response = JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'cart_sku': cart_sku})
+        if user.is_authenticated:
             redis_conn = get_redis_connection('carts')
             pl = redis_conn.pipeline()
-            pl.hset(f'carts_{self.user.id}', sku_id, count)
+            pl.hset(f'carts_{user.id}', sku_id, count)
             if selected:
-                pl.sadd(f'selected_{self.user.id}', sku_id)
+                pl.sadd(f'selected_{user.id}', sku_id)
             else:
-                pl.srem(f'selected_{self.user.id}', sku_id)
+                pl.srem(f'selected_{user.id}', sku_id)
             pl.execute()
 
-            cart_sku = {
-                'id': sku_id,
-                'name': sku.name,
-                'count': count,
-                'selected': selected,
-                'default_image_url': sku.default_image.url,
-                'price': sku.price,
-                'amount': sku.price * count
-            }
-            return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'cart_sku': cart_sku})
         else:
             cart_str = request.COOKIES.get('carts')
             if cart_str:
                 cart_dict = pickle.loads(base64.b64decode(cart_str.encode()))
             else:
-                return JsonResponse({'code': RETCODE.DBERR, 'errmsg': 'cookie数据没有获取到'})
-
-            if sku_id in cart_dict:
-                origin_count = cart_dict[sku_id]['count']
-                count += origin_count
+                return render(request, 'cart.html')
 
             cart_dict[sku_id] = {
                 'count': count,
@@ -183,21 +178,9 @@ class CartsView(View):
 
             cooker_cart_str = base64.b64encode(pickle.dumps(cart_dict)).decode()
 
-            cart_sku = {
-                'id': sku_id,
-                'count': count,
-                'selected': selected,
-                'name': sku.name,
-                'default_image_url': sku.default_image.url,
-                'price': sku.price,
-                'amount': sku.price * count,
-            }
-
-            response = JsonResponse({'code':RETCODE.OK, 'errmsg': 'OK', 'cart_sku': cart_sku})
-
             response.set_cookie('carts', cooker_cart_str, max_age=constants.CARTS_COOKIE_EXPIRES)
 
-            return response
+        return response
 
     def delete(self, request):
         """删除购物车"""
@@ -208,13 +191,13 @@ class CartsView(View):
             SKU.objects.get(id=sku_id)
         except:
             return HttpResponseForbidden('商品不存在')
-
-        if self.user is not None and self.user.is_authenticated:
+        user = request.user
+        if user is not None and user.is_authenticated:
             redis_conn = get_redis_connection('carts')
 
             pl = redis_conn.pipeline()
-            pl.hdel(f'carts_{self.user.id}', sku_id)
-            pl.srem(f'selected_{self.user.id}', sku_id)
+            pl.hdel(f'carts_{user.id}', sku_id)
+            pl.srem(f'selected_{user.id}', sku_id)
             pl.execute()
 
             return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
@@ -251,15 +234,15 @@ class CartsSelectAllView(View):
         if selected:
             if not isinstance(selected, bool):
                 return HttpResponseForbidden('参数selected有误')
-
-        if self.user is not None and self.user.is_authenticated:
+        user = request.user
+        if user is not None and user.is_authenticated:
             redis_conn = get_redis_connection('carts')
-            cart = redis_conn.hgetall(f'carts_{self.user.id}')
+            cart = redis_conn.hgetall(f'carts_{user.id}')
             sku_id_list = cart.keys()
             if selected:
-                redis_conn.sadd(f'selected_{self.user.id}', *sku_id_list)
+                redis_conn.sadd(f'selected_{user.id}', *sku_id_list)
             else:
-                redis_conn.delete(f'selected_{self.user.id}')
+                redis_conn.delete(f'selected_{user.id}')
             return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
 
         else:
@@ -282,10 +265,11 @@ class CartsSelectAllView(View):
 class CartSimpleView(View):
     """商品页面右上角购物车"""
     def get(self, request):
-        if self.user.is_authenticated:
+        user = request.user
+        if user.is_authenticated:
             redis_conn = get_redis_connection('carts')
-            redis_cart = redis_conn.hgetall(f'carts_{self.user.id}')
-            cart_selected = redis_conn.smembers(f'selected_{self.user.id}')
+            redis_cart = redis_conn.hgetall(f'carts_{user.id}')
+            cart_selected = redis_conn.smembers(f'selected_{user.id}')
 
             cart_dict = {}
             for sku_id, count in redis_cart.items():
@@ -312,4 +296,5 @@ class CartSimpleView(View):
             })
 
         return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'cart_skus': cart_skus})
+
 
