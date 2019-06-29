@@ -7,12 +7,11 @@ from django.shortcuts import render
 from django.views import View
 
 from meiduo_mall.utils.response_code import RETCODE
-from meiduo_mall.utils.views import LoginRequiredView
 from orders.models import OrderInfo
 from payment.models import Payment
 
 
-class PaymentView(LoginRequiredView):
+class PaymentView(View):
     """订单支付功能"""
 
     def get(self, request, order_id):
@@ -26,7 +25,8 @@ class PaymentView(LoginRequiredView):
             appid=settings.ALIPAY_APPID,
             app_notify_url=None,
             app_private_key_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "keys/app_private_key.pem"),
-            alipay_public_key_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "keys/alipay_public_key.pem"),
+            alipay_public_key_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                "keys/alipay_public_key.pem"),
             sign_type='RSA2',
             debug=settings.ALIPAY_DEBUG
         )
@@ -44,6 +44,7 @@ class PaymentView(LoginRequiredView):
 
 class PaymentStatusView(View):
     """保存订单支付结果"""
+
     def get(self, request):
         query_dict = request.GET
         data = query_dict.dict()
@@ -53,8 +54,9 @@ class PaymentStatusView(View):
         alipay = AliPay(
             appid=settings.ALIPAY_APPID,
             app_notify_url=None,
-            app_private_key_path=os.path.join(os.path.dirname(os.path.abspath(__file__))),
-            alipay_public_key_path=os.path.join(os.path.dirname(os.path.abspath(__file__))),
+            app_private_key_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), "keys/app_private_key.pem"),
+            alipay_public_key_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                "keys/alipay_public_key.pem"),
             sign_type='RSA2',
             debug=settings.ALIPAY_DEBUG
         )

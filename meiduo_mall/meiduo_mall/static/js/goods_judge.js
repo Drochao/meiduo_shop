@@ -15,7 +15,7 @@ var vm = new Vue({
         render_comments(){
             this.skus = JSON.parse(JSON.stringify(skus));
             for(var i=0;i<this.skus.length;i++){
-                this.skus[i].url = '/goods/' + this.skus[i].sku_id + '.html';
+                this.skus[i].url = '/detail/' + this.skus[i].sku_id;
                 Vue.set(this.skus[i], 'score', 0); // 记录随鼠标变动的星星数
                 Vue.set(this.skus[i], 'display_score', 0); // 展示变动的分数值
                 this.skus[i].final_score = 0; // 记录用户确定的星星数

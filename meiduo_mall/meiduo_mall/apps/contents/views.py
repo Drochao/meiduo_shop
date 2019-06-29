@@ -24,7 +24,6 @@ class IndexView(View):
             'contents': contents
         }
 
-
         return render(request, 'index.html', context)
 
 

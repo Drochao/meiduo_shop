@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.utils import timezone
+from django.views import View
 from django_redis import get_redis_connection
 
 from goods.models import SKU
@@ -195,30 +196,25 @@ class OrderInfoView(LoginRequiredView):
 
     def get(self, request, page_num):
         """渲染订单信息页面"""
+        # 获取按时间顺序的订单信息查询集
         orders = OrderInfo.objects.filter().order_by('-create_time')
-        # sku_ids = []
-        # for order in orders:
-        #     sku_ids.append(order.sku_id)
-
+        # 分页
         paginator = Paginator(orders, constants.ORDER_LIST_LIMIT)
-
         try:
+            # 获取分页后数据
             page_orders = paginator.page(page_num)
         except EmptyPage:
             return HttpResponseNotFound('empty page')
-
-        # orders.sku_list = []
-        # for sku_id in sku_ids:
-        #     sku = SKU.objects.get(id=sku_id)
-        #     orders.sku_list.append(sku)
-
+        # 获取总页数
         total_page = paginator.num_pages
+        # 给page_order新增sku_list属性
         for order in page_orders:
             order.sku_list = []
             goods = order.skus.all()
+            # 本来sku_list数据是sku表的,给他新增两个属性，count和amount
             for good in goods:
                 sku = SKU.objects.get(id=good.sku_id)
-                sku.count = 1
+                sku.count = OrderGoods.objects.get(order_id=order.order_id, sku_id=good.sku_id).count
                 sku.amount = sku.price
                 order.sku_list.append(sku)
 
@@ -229,3 +225,27 @@ class OrderInfoView(LoginRequiredView):
         }
 
         return render(request, 'user_center_order.html', context)
+
+
+class CommentView(LoginRequiredView):
+
+    def get(self, request):
+        order_id = request.GET.get('order_id')
+        uncomment_goods = OrderGoods.objects.filter(is_commented=False, order_id=order_id)
+        uncomment_goods_list = []
+        for uncomment_good in uncomment_goods:
+            sku = SKU.objects.get(id=uncomment_good.sku_id)
+            uncomment_goods_list.append({
+                'sku_id': uncomment_good.sku_id,
+                'score': uncomment_good.score,
+                'order_id': order_id,
+                'comment': uncomment_good.comment,
+                'is_anonymous': "false",
+                'default_image_url': sku.default_image.url,
+                'name': sku.name,
+                'price': str(sku.price),
+            })
+        context = {
+            'uncomment_goods_list': uncomment_goods_list
+        }
+        return render(request, 'goods_judge.html', context)
