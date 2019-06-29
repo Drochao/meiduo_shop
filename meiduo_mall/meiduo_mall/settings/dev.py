@@ -104,13 +104,22 @@ WSGI_APPLICATION = 'meiduo_mall.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': {  # 写 (主机)
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'meiduo_27',
         'HOST': '192.168.13.48',
         'PORT': '',
         'USER': 'chao',
         'PASSWORD': 'qinhan',
+    },
+
+    'slave': {  # 读（从机）
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': '192.168.103.210',
+        'PORT': 8306,
+        'USER': 'root',
+        'PASSWORD': 'mysql',
+        'NAME': 'meiduo_mall'
     }
 }
 
@@ -152,6 +161,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static')
 
 CACHES = {
     "default": {  # 默认
@@ -288,3 +298,5 @@ CRONJOBS = [
 ]
 
 CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
+
+DATABASE_ROUTERS = ['meiduo_mall.utils.db_router.MasterSlaveDBRouter']
