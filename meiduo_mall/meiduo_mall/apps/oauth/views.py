@@ -1,5 +1,6 @@
 import logging
 import re
+import time
 
 from QQLoginTool.QQtool import OAuthQQ
 from django.conf import settings
@@ -13,8 +14,8 @@ from django_redis import get_redis_connection
 from carts.utils import merge_cart_cookie_to_redis
 from meiduo_mall.utils.response_code import RETCODE
 from oauth import constants
-from oauth.models import OAuthQQUser
-from oauth.utils import check_openid_signature, generate_openid_signature
+from oauth.models import OAuthQQUser, OAuthWeiboUser
+from oauth.utils import check_openid_signature, generate_openid_signature, OAuthWB
 from users.models import User
 
 logger = logging.getLogger('django')
@@ -137,3 +138,48 @@ class QQAuthView(View):
         merge_cart_cookie_to_redis(request, response)
 
         return response
+
+
+# class WeiboAuthURLView(View):
+#     """微博登陆"""
+#     def get(self, request):
+#         # next表示进入登陆页面之前的那个页面
+#         next = request.GET.get('next', '/')
+#         # 获取QQ登录页面网址
+#         auth_wb = OAuthWB(client_id=settings.WEIBO_APP_ID,
+#                           client_key=settings.WEIBO_APP_KEY,
+#                           redirect_uri=settings.WEIBO_REDIRECT_URI,
+#                           state=next)
+#
+#         login_url = auth_wb.get_qq_url()
+#         return JsonResponse({
+#             'code': RETCODE.OK,
+#             'errmsg': 'OK',
+#             'login_url': login_url})
+#
+#
+# class SinaAuthView(View):
+#     def get(self, request):
+#         """登录之后，会跳转到这里。需要判断code和state"""
+#         code = request.GET.get('code', None)
+#         sina = OAuthWB(settings.WEIBO_APP_ID,
+#                        settings.WEIBO_APP_KEY,
+#                        settings.WEIBO_REDIRECT_URI)
+#         user_info = sina.get_access_token(code)
+#         time.sleep(0.1)  # 防止还没请求到token就进行下一步
+#         # 通过uid查询出是否是新用户，新用户则注册登录
+#         uid = sina.get_user_info(user_info)
+#         oauth_model = OAuthWeiboUser.objects.get(openid=openid)
+#         if is_user_exist is not None:
+#             # 存在直接登录
+#             pass
+#         else:
+#             # 不存在获取用户信息
+#             new_user_info = sina.get_user_info(user_info)
+#             users_dict = {
+#                 "uid": new_user_info['id'],
+#                 'description': new_user_info['description'],
+#                 "head": new_user_info['profile_image_url'],
+#                 "nickname": new_user_info['name'],
+#             }
+#             users_table_obj = models.Users.objects.create(**users_dict).id

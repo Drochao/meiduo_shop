@@ -14,6 +14,7 @@ urlpatterns = [
     path('password/', views.ChangePasswordView.as_view(), name="password"),
     path('browse_histories/', views.UserBrowseHistory.as_view(), name="history"),
     path('addresses/create/', views.CreateAddressView.as_view()),
+    path('find_password/', views.FindPasswordView.as_view()),
     re_path(r'^usernames/(?P<username>[a-zA-Z0-9_-]{5,20})/count/$', views.UsernameCountView.as_view()),
     re_path(r'^mobiles/(?P<mobile>1[345789]\d{9})/count/$', views.MobileCountView.as_view()),
     re_path(r'^addresses/(?P<address_id>\d+)/$', views.UpdateDestroyAddressView.as_view()),

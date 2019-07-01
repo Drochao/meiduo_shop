@@ -47,41 +47,27 @@
                 <li><a href="/info/">· 个人信息</a></li>
                 <li><a href="/orders/info/1/">· 全部订单</a></li>
                 <li><a href="/addresses/">· 收货地址</a></li>
-                <li><a href="/password/" class="active">· 修改密码</a></li>
-                <li><a href="/wallet/">· 我的钱包</a></li>
+                <li><a href="/password/">· 修改密码</a></li>
+                <li><a href="/wallet/" class="active">· 我的钱包</a></li>
             </ul>
         </div>
         <div class="right_content clearfix">
             <div class="info_con clearfix">
-                <h3 class="common_title2">修改密码</h3>
+                <h3 class="common_title2">余额</h3>
                 <div class="site_con pass_change_con">
-                    <form class="change_pwd" @submit="on_submit" method="post">
-                        {{ csrf_input }}
-                        <div class="form_group">
-                            <label>当前密码：</label>
-                            <input type="password" v-model="old_pwd" class="old_pwd" name="old_pwd" @blur="check_opwd">
-                            <span class="old_pwd_error" v-show="error_opwd">请输入8-12位的密码</span>
-                            {% if origin_pwd_errmsg %}
-                                <span class="old_pwd_error">{{ origin_pwd_errmsg }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="form_group">
-                            <label>新密码：</label>
-                            <input type="password" v-model="new_pwd" class="new_pwd" name="new_pwd" @blur="check_pwd">
-                            <span class="new_pwd_error" v-show="error_pwd">请输入8-12位的密码</span>
-                        </div>
-                        <div class="form_group">
-                            <label>确认新密码：</label>
-                            <input type="password" v-model="new_cpwd" class="new_cpwd" name="new_cpwd"
-                                   @blur="check_cpwd">
-                            <span class="new_cpwd_error" v-show="error_cpwd">两次输入的密码不一致</span>
-                            {% if change_pwd_errmsg %}
-                                <span class="new_cpwd_error">{{ change_pwd_errmsg }}</span>
-                            {% endif %}
-                        </div>
-                        <input type="submit" name="" value="确 定" class="info_submit">
-                        <input type="reset" name="" value="取 消" class="info_submit info_reset">
-                    </form>
+                    <div class="form_group">
+                        <label>余额：</label>
+                        <span style="font-size: 24px">0.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="info_con clearfix">
+                <h3 class="common_title2">优惠券</h3>
+                <div class="site_con pass_change_con">
+                    <div class="form_group">
+                        <label>优惠券：</label>
+                        <a href="#"><span style="font-size: 24px">5张</span></a>
+                    </div>
                 </div>
             </div>
         </div>

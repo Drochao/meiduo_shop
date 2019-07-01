@@ -1,5 +1,6 @@
 from django import http
 from django.core.paginator import Paginator, EmptyPage
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
@@ -9,6 +10,8 @@ from goods import constants
 from goods.models import SKU, GoodsCategory, GoodsVisitCount
 from goods.utils import get_breadcrumb
 from meiduo_mall.utils.response_code import RETCODE
+from orders.models import OrderGoods, OrderInfo
+from users.models import User
 
 
 class ListView(View):
@@ -116,8 +119,11 @@ class DetailView(View):
                 option.sku_id = spec_sku_map.get(tuple(temp_option_ids))
 
             spec.spec_options = spec_option_qs
-
+        goods = OrderGoods.objects.filter(sku_id=sku_id)
+        count = goods.count()
         context = {
+            'count': count,
+            'goods': goods,
             'categories': categories,
             'breadcrumb': breadcrumb,
             'sku': sku,
@@ -145,3 +151,15 @@ class DetailVisitView(View):
         counts_data.count += 1
         counts_data.save()
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
+
+
+# class ShowCommentView(View):
+#     def get(self, request, sku_id):
+#         order = OrderInfo.objects.get(sku_id=sku_id)
+#         context = {
+#             'comment_list': {
+#                 'username': user.username,
+#                 'comment':
+#             }
+#         }
+#         return JsonResponse(context)

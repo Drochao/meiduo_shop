@@ -114,6 +114,7 @@ class CartsView(View):
             })
 
         context = {
+            'title': '购物车',
             'cart_skus': cart_skus
         }
 

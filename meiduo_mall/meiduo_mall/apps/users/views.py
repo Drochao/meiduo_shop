@@ -86,6 +86,11 @@ class RegisterView(View):
         return response
 
 
+class FindPasswordView(View):
+    def get(self, request):
+        return render(request, 'find_password.html')
+
+
 class UsernameCountView(View):
     """判断用户名是否重复注册"""
 
@@ -109,7 +114,7 @@ class LoginView(View):
 
     def get(self, request):
         """展示登录页面"""
-        return render(request, 'login.html')
+        return render(request, 'login.html', context={'title': '登录'})
 
     def post(self, request):
         """实现用户登录"""

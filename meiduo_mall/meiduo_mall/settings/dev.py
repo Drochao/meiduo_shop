@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'goods.apps.GoodsConfig',
     'haystack',
     'payment.apps.PaymentConfig',
-    'django_crontab'
+    'django_crontab',
+    'wallet.apps.WalletConfig'
 ]
 
 MIDDLEWARE = [
@@ -107,20 +108,20 @@ DATABASES = {
     'default': {  # 写 (主机)
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'meiduo_27',
-        'HOST': '192.168.13.48',
+        'HOST': '127.0.0.1',
         'PORT': '',
         'USER': 'chao',
         'PASSWORD': 'qinhan',
-    },
-
-    'slave': {  # 读（从机）
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': '192.168.103.210',
-        'PORT': 8306,
-        'USER': 'root',
-        'PASSWORD': 'mysql',
-        'NAME': 'meiduo_mall'
     }
+    #
+    # 'slave': {  # 读（从机）
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'HOST': '192.168.13.222',
+    #     'PORT': 3307,
+    #     'USER': 'root',
+    #     'PASSWORD': '123456',
+    #     'NAME': 'meiduo_27'
+    # }
 }
 
 # Password validation
@@ -276,7 +277,7 @@ FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://192.168.13.75:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
+        'URL': 'http://192.168.13.222:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
         'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
     },
 }
@@ -299,4 +300,9 @@ CRONJOBS = [
 
 CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
 
-DATABASE_ROUTERS = ['meiduo_mall.utils.db_router.MasterSlaveDBRouter']
+# DATABASE_ROUTERS = ['meiduo_mall.utils.db_router.MasterSlaveDBRouter']
+
+'''微博登录常量'''
+WEIBO_APP_ID = "App Key"
+WEIBO_APP_KEY = "App Secret"
+WEIBO_REDIRECT_URI = "回调地址"

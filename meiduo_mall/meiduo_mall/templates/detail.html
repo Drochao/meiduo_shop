@@ -160,36 +160,34 @@
             <ul class="detail_tab clearfix">
                 <li @click="on_tab_content('detail')" :class="tab_content.detail?'active':''">商品详情</li>
                 <li @click="on_tab_content('pack')" :class="tab_content.pack?'active':''">规格与包装</li>
-                <li @click="on_tab_content('comment')" :class="tab_content.comment?'active':''">商品评价(1)</li>
+                <li @click="on_tab_content('comment')" :class="tab_content.comment?'active':''">商品评价{{ count }}</li>
                 <li @click="on_tab_content('service')" :class="tab_content.service?'active':''">售后服务</li>
             </ul>
             <div @click="on_tab_content('detail')" class="tab_content" :class="tab_content.detail?'current':''">
                 <dl>
                     <dt>商品详情：</dt>
-                    <dd>它纤薄如刃，轻盈如羽，却又比以往速度更快、性能更强大。它为你展现的，是迄今最明亮、最多彩的 Mac
-                        笔记本显示屏。它更配备了触控栏，一个内置于键盘的玻璃面多点触控条，让你能在需要时快速取用各种工具。MacBook Pro 是对我们突破性理念的一场出色演绎，而它，也正期待着演绎你的奇思妙想。
+                    <dd>{{ spu.desc_detail | safe }}
                     </dd>
                 </dl>
             </div>
             <div @click="on_tab_content('pack')" class="tab_content" :class="tab_content.pack?'current':''">
                 <dl>
                     <dt>规格与包装：</dt>
-                    <dd>它纤薄如刃，轻盈如羽，却又比以往速度更快、性能更强大。它为你展现的，是迄今最明亮、最多彩的 Mac
-                        笔记本显示屏。它更配备了触控栏，一个内置于键盘的玻璃面多点触控条，让你能在需要时快速取用各种工具。MacBook Pro 是对我们突破性理念的一场出色演绎，而它，也正期待着演绎你的奇思妙想。
+                    <dd>{{ spu.desc_pack | safe }}
                     </dd>
                 </dl>
             </div>
             <div @click="on_tab_content('comment')" class="tab_content" :class="tab_content.comment?'current':''">
                 <ul class="judge_list_con">
-                    <li class="judge_list fl">
+                    <li class="judge_list fl" v-for="comment in comments">
                         <div class="user_info fl">
                             <img src="/static/images/cat.jpg">
-                            <b>潇***啼</b>
+                            <b>[[ comment.username ]]</b>
                         </div>
                         <div class="judge_info fl">
                             <div class="stars_five"></div>
-                            <div class="judge_detail">
-                                派送非常快，第二天上午就收到。2天使用初步总结，前一部手机也是华为P9plus.MATE10pro包装原封未拆精致大气。拆开后第一眼就看到宝石蓝的手机，非常惊艳；然后就是配件一应俱全。开机各方面设置，把通讯录、短信等同步好，同品牌手机同步很快。和P9plus一样的后置指纹识别很方便。录制指纹容易，解锁非常快，秒开！屏幕完好，默认分辨率显示效果很好。
+                             <div class="judge_detail">
+                                [[ comment.comment ]]
                             </div>
                         </div>
                     </li>
@@ -198,8 +196,7 @@
             <div @click="on_tab_content('service')" class="tab_content" :class="tab_content.service?'current':''">
                 <dl>
                     <dt>售后服务：</dt>
-                    <dd>它纤薄如刃，轻盈如羽，却又比以往速度更快、性能更强大。它为你展现的，是迄今最明亮、最多彩的 Mac
-                        笔记本显示屏。它更配备了触控栏，一个内置于键盘的玻璃面多点触控条，让你能在需要时快速取用各种工具。MacBook Pro 是对我们突破性理念的一场出色演绎，而它，也正期待着演绎你的奇思妙想。
+                    <dd>{{ spu.desc_service | safe }}
                     </dd>
                 </dl>
             </div>

@@ -14,9 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import path, include
+from django.urls import path, include, re_path
 
 import xadmin
+from orders import views
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
@@ -29,6 +30,7 @@ urlpatterns = [
     path('', include('goods.urls', namespace='goods')),
     path('', include('carts.urls', namespace='carts')),
     path('', include('payment.urls', namespace='payment')),
+    path('', include('wallet.urls', namespace='wallet')),
     path('orders/', include('orders.urls', namespace='orders')),
     path('search/', include('haystack.urls')),
 ]

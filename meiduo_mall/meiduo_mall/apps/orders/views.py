@@ -7,7 +7,6 @@ from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.utils import timezone
-from django.views import View
 from django_redis import get_redis_connection
 
 from goods.models import SKU
@@ -197,7 +196,7 @@ class OrderInfoView(LoginRequiredView):
     def get(self, request, page_num):
         """渲染订单信息页面"""
         # 获取按时间顺序的订单信息查询集
-        orders = OrderInfo.objects.filter().order_by('-create_time')
+        orders = OrderInfo.objects.filter(user_id=request.user.id).order_by('-create_time')
         # 分页
         paginator = Paginator(orders, constants.ORDER_LIST_LIMIT)
         try:
@@ -215,7 +214,7 @@ class OrderInfoView(LoginRequiredView):
             for good in goods:
                 sku = SKU.objects.get(id=good.sku_id)
                 sku.count = OrderGoods.objects.get(order_id=order.order_id, sku_id=good.sku_id).count
-                sku.amount = sku.price
+                sku.amount = sku.price * sku.count
                 order.sku_list.append(sku)
 
         context = {
@@ -249,3 +248,25 @@ class CommentView(LoginRequiredView):
             'uncomment_goods_list': uncomment_goods_list
         }
         return render(request, 'goods_judge.html', context)
+
+    def post(self, request):
+        json_dict = json.loads(request.body.decode())
+        sku_id = json_dict.get('sku_id')
+        comment = json_dict.get('comment')
+        order_id = json_dict.get('order_id')
+        selected = json_dict.get('is_anonymous')
+        score = json_dict.get('score')
+
+        if not all([sku_id, comment, order_id, score]):
+            return HttpResponseForbidden('缺少必传参数')
+
+        good = OrderGoods.objects.get(order_id=order_id, sku_id=sku_id)
+        good.is_commented = True
+        good.comment = comment
+        good.is_anonymous = selected
+        good.score = score
+        good.save()
+        OrderInfo.objects.filter(
+            order_id=order_id,
+            status=OrderInfo.ORDER_STATUS_ENUM['UNCOMMENT']).update(status=OrderInfo.ORDER_STATUS_ENUM['FINISHED'])
+        return JsonResponse({'code': RETCODE.OK, 'errmsg': 'ok'})

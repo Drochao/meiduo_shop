@@ -16,10 +16,7 @@
             <div class="form_con">
                 <div class="form_input cur">
                     <form method="post" id="login-form" @submit="on_submit">
-
-                        
                         {{ csrf_input }}
-
                         <input type="text" v-model="username" @blur="check_username" name="username" class="name_input"
                                placeholder="请输入用户名或手机号">
                         <div v-show="error_username" class="user_error" v-cloak>请输入正确的用户名或手机号</div>
@@ -32,6 +29,7 @@
                         <div class="more_input clearfix">
                             <input type="checkbox" v-model="remembered" name="remembered">
                             <label>记住登录</label>
+                            <a href="/find_password">忘记密码</a>
                         </div>
                         <input type="submit" value="登 录" class="input_submit">
                     </form>
@@ -40,6 +38,7 @@
             <div class="third_party">
                 <a @click="qq_login" class="qq_login">QQ</a>
                 <a href="#" class="weixin_login">微信</a>
+                <a href="#" class="weibo_login" @click="weibo_login">微博</a>
                 <a href="{{ url ('users:register') }}" class="register_btn">立即注册</a>
             </div>
 
