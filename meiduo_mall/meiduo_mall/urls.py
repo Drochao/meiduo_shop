@@ -33,4 +33,5 @@ urlpatterns = [
     path('', include('wallet.urls', namespace='wallet')),
     path('orders/', include('orders.urls', namespace='orders')),
     path('search/', include('haystack.urls')),
+    path('', include('coupons.urls', namespace="coupons")),
 ]

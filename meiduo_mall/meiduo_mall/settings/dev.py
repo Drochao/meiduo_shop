@@ -26,7 +26,7 @@ SECRET_KEY = 'rs(4mn6l6=@giajcj5)(3u6uz9_a#7f@+fl-wy24akaubp*9gr'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.meiduo.site', '192.168.13.74', '127.0.0.1']
+ALLOWED_HOSTS = ['www.meiduo.site', '192.168.13.48', '127.0.0.1']
 
 # Application definition
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'haystack',
     'payment.apps.PaymentConfig',
     'django_crontab',
-    'wallet.apps.WalletConfig'
+    'wallet.apps.WalletConfig',
+    'coupons.apps.CouponsConfig'
 ]
 
 MIDDLEWARE = [

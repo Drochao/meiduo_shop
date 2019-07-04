@@ -29,34 +29,51 @@ class ListView(View):
 
         breadcrumb = get_breadcrumb(category)
 
-        if sort == 'price':
-            sort_field = 'price'
-        elif sort == 'hot':
-            sort_field = '-sales'
+        # 按用户点击的请求，按价格销量排序，默认按创建时间
+        test = request.GET.get('test', "1")
+        # test判断升序还是降序
+        if test == "1":
+            if sort == 'price':
+                sort_page = '-price'
+            elif sort == 'hot':
+                sort_page = '-sales'
+            else:
+                sort_page = '-create_time'
+            test1 = 0
         else:
-            sort = 'default'
-            sort_field = 'create_time'
-
-        skus = SKU.objects.filter(category_id=category_id, is_launched=True).order_by(sort_field)
-
-        paginator = Paginator(skus, constants.GOODS_LIST_LIMIT)
-
+            if sort == 'price':
+                sort_page = 'price'
+            elif sort == 'hot':
+                sort_page = 'sales'
+            else:
+                sort_page = 'create_time'
+            test1 = 1
+            # 查询数据库排序
+        skus = category.sku_set.filter(is_launched=True).order_by(sort_page)
+        # skus = SKU.objects.filter(category=category, is_launched=True).order_by(sort_page)
+        # 列表页分页
+        # 创建分页器：每页N条记录，有余数往上加一页
+        paginator = Paginator(skus, 5)
         try:
+            # 分页，内部函数自动分好了
             page_skus = paginator.page(page_num)
         except EmptyPage:
             return http.HttpResponseNotFound('empty page')
-
+        # 返回总页数
         total_page = paginator.num_pages
-
+        # 包装数据
         context = {
-            'categories': categories,   # 频道分类
-            'breadcrumb': breadcrumb,   # 面包屑导航
-            'sort': sort,               # 排序字段
-            'category': category,       # 第三级分类
-            'page_skus': page_skus,     # 分页后数据
-            'total_page': total_page,   # 总页数
-            'page_num': page_num,       # 当前页码
+            'title': '订单列表页',
+            'categories': categories,  # 显示三级标题
+            'breadcrumb': breadcrumb,  # 面包屑导航
+            'page_num': page_num,  # 分页后的数据
+            'page_skus': page_skus,  # 当前页
+            'total_page': total_page,  # 总页数
+            'category': category,  # 三级分类
+            'sort': sort,  # 排序字段
+            'test': test1,  # 升序降序
         }
+
         return render(request, 'list.html', context)
 
 

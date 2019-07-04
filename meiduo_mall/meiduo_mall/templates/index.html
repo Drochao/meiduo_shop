@@ -1,10 +1,73 @@
 {% extends 'base.html' %}
+{% block css %}
+    <style type="text/css">
+        /* 所有的元素的外边距和内边距都为0, 项目列表前的类型为无 */
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        body {
+            height: 1000px;
+        }
+
+        /* 插入背景图片 图片位于右下角不显示 */
+        /* .ad { background: url(images/ad.jpg); width: 280px; height: 0px; */
+        .ad {
+            background: url("/static/images/apple/iphone.png") no-repeat 50px 0px;
+            width: 280px;
+            height: 0px;
+            /* position:fixed生成绝对定位的元素，相对于浏览器窗口进行定位。right:0靠右bottom:0底部 */
+            position: fixed;
+            right: 0px;
+            bottom: 0px;
+        }
+
+        /* 生成绝对定位的元素,相对于static定位以外的第一个父元素进行定位.static默认值.没有定位,元素出现在正常的流中
+        text-decoration: none 默认。定义标准的文本（文字没有下划线）*/
+        .close_btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            text-decoration: none;
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(function () {
+            // 加载完成上升高度完全显示 188  animate() 方法执行 CSS 属性集的自定义动画
+            $('.ad').animate({height: 288});
+            setInterval(f1, 5000);
+
+            function f1() {
+                $(function () {
+                    $('.ad').animate({height: 0}, 2000);
+                });
+            };
+
+            // 鼠标点击事件执行回退
+            $('.close_btn').click(function () {
+                $(this).parent().animate({height: 0});
+            });
+        });
+    </script>
+{% endblock %}
 {% block body %}
     <body>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="ad">
+        <a href="##" class="close_btn">X</a>
+    </div>
     <div id="app" v-cloak>
         <div class="header_con">
             <div class="header">
-                <div class="welcome fl">欢迎来到美多商城!</div>
+                <div class="welcome fl">欢迎来到美多商城!
+                    <em> [[ city_weather1.city ]] [[ city_weather2[2] ]] [[ city_weather1.data[0].wea ]] <img
+                        :src="[[ weather_png ]]" alt=""/> 气温：[[ city_weather1.data[0].tem2 ]]/[[
+                    city_weather1.data[0].tem1 ]] [[ city_weather2[1] ]]
+                </em>
+                </div>
                 <div class="fr">
                     <div class="login_btn fl" v-if="username">
                         欢迎您：<em>[[ username ]]</em>
@@ -23,7 +86,7 @@
                         <span>|</span>
                         <a href="{{ url ('carts:cart') }}">我的购物车</a>
                         <span>|</span>
-                        <a href="{{ static ('user_center_order.html') }}">我的订单</a>
+                        <a href="/orders/info/1">我的订单</a>
                     </div>
                 </div>
             </div>
@@ -63,9 +126,9 @@
                 <ul class="navlist fl">
                     <li><a href="">首页</a></li>
                     <li class="interval">|</li>
-                    <li><a href="">真划算</a></li>
+                    <li><a href="/coupon/">领券中心</a></li>
                     <li class="interval">|</li>
-                    <li><a href="">抽奖</a></li>
+                    <li><a href="/coupon_god/">推广有奖</a></li>
                 </ul>
             </div>
         </div>
@@ -73,7 +136,8 @@
         <div class="pos_center_con clearfix">
             <ul class="slide">
                 {% for content in contents.index_lbt %}
-                    <li><a href="{{ content.url }}"><img src="{{ content.image.url }}" alt="{{ content.title }}"></a></li>
+                    <li><a href="{{ content.url }}"><img src="{{ content.image.url }}" alt="{{ content.title }}"></a>
+                    </li>
                 {% endfor %}
             </ul>
             <div class="prev"></div>
@@ -266,11 +330,22 @@
         </div>
     </div>
 {% endblock body %}
-{% block script %}
+{% block div %}
     </div>
+{% endblock %}
+{% block script %}
     <script type="text/javascript" src="{{ static ('js/slide.js') }}"></script>
     <script type="text/javascript" src="{{ static ('js/common.js') }}"></script>
     <script type="text/javascript" src="{{ static ('js/index.js') }}"></script>
+        <script type="text/javascript">
+
+        $(function fnAdd(iNum01) {
+            $('.ad').animate({height: iNum01});
+            $('.close_btn').click(function () {
+                $(this).parent().animate({height: 0});
+            });
+        });
+    </script>
     </body>
     </html>
 {% endblock %}

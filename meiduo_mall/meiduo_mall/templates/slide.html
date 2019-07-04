@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title></title>
+<script type="text/javascript" src="{{ static('js/jquery-1.12.4.min.js') }}"></script>
+<link href="{{ static('css/slide.css') }}" rel="stylesheet">
+</head>
+<body>
+<!--右侧悬浮菜单-->
+<div class="slide">
+	<ul class="icon">
+		<li class="up" title="上一页"></li>
+		<li class="qq"></li>
+		<li class="tel"></li>
+		<li class="wx"></li>
+		<li class="down" title="下一页"></li>
+	</ul>
+	<ul class="info">
+		<li class="qq">
+			<p>在线沟通，请点我<a href="http://wpa.qq.com/msgrd?v=3&uin=123456789&site=qq&menu=yes" target="_blank">在线咨询</a></p>
+		</li>
+		<li class="tel">
+			<p>咨询热线：<br>400-800-8888<br>客服qq：<br>123456789</p>
+		</li>
+		<li class="wx">
+			<div class="img"><img src="{{ static('images/1441956938.png') }}" /></div>
+		</li>
+	</ul>
+</div>
+<div id="btn" class="index_cy"></div>
+
+<script type="text/javascript">
+$(function(){
+
+	$('.slide .icon li').not('.up,.down').mouseenter(function(){
+		$('.slide .info').addClass('hover');
+		$('.slide .info li').hide();
+		$('.slide .info li.'+$(this).attr('class')).show();//.slide .info li.qq
+	});
+	$('.slide').mouseleave(function(){
+		$('.slide .info').removeClass('hover');
+	});
+
+	$('#btn').click(function(){
+		$('.slide').toggle();
+		if($(this).hasClass('index_cy')){
+			$(this).removeClass('index_cy');
+			$(this).addClass('index_cy2');
+		}else{
+			$(this).removeClass('index_cy2');
+			$(this).addClass('index_cy');
+		}
+
+	});
+
+});
+</script>
+</body>
+</html>

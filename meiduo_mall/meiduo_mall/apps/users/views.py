@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 import re
 
 from django.conf import settings
@@ -18,6 +19,7 @@ from meiduo_mall.utils.views import LoginRequiredView
 from users import constants
 from users.models import User, Address
 from users.utils import UsernameMobileAuthBackend, generate_verify_email_url, getdata, forbidden
+from wallet.models import Wallet
 
 logger = logging.getLogger('user')
 OK = {'code': RETCODE.OK, 'errmsg': 'OK'}
@@ -72,6 +74,14 @@ class RegisterView(View):
         try:
             user = User.objects.create_user(username=username, password=password,
                                             mobile=mobile)
+        except Exception as e:
+            print(e)
+            return render(request, 'register.html', {'register_errmsg': '注册失败'})
+
+        share_code = '%06d' % random.randint(0, 999999)
+        logger.info(share_code)
+        try:
+            user = Wallet.objects.create(user=user,share_code=share_code, balance=100)
         except Exception as e:
             print(e)
             return render(request, 'register.html', {'register_errmsg': '注册失败'})

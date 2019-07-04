@@ -10,12 +10,16 @@ var vm = new Vue({
         cart_total_count: 0, // 购物车总数量
         carts: [], // 购物车数据,
         username:'',
+        city_weather1:"",
+        city_weather2:"",
+        weather_png:"",
     },
     mounted(){
         // 获取购物车数据
         this.get_carts();
         this.username=getCookie('username');
         console.log(this.username);
+        this.city_weather();
     },
     methods: {
         // 获取购物车数据
@@ -37,6 +41,43 @@ var vm = new Vue({
                 .catch(error => {
                     console.log(error.response);
                 })
-        }
+        },
+        city_weather(){
+            var url = "https://www.tianqiapi.com/api/";
+            axios.get(url, {
+                    responseType: 'json',
+                })
+                .then(response => {
+            // console.log(response);
+                    this.city_weather1 = response.data;
+                    this.get_weather_date();
+                })
+                .catch(error => {
+                    console.log(error.response);
+                });
+                 return this.city_weather1;
+        },
+        get_weather_date(){
+            // console.log(this.city_weather1);
+            var url = this.host+'/weather/';
+            axios.post(url,
+                {
+                    all_weather_date: this.city_weather1
+                },
+                {
+                    headers: {
+                        'X-CSRFToken':getCookie('csrftoken')
+                    },
+                    responseType: 'json',
+                })
+                .then(response => {
+                    this.city_weather2 = response.data.weather;
+                    this.weather_png = "/static/images/apple/" + this.city_weather2[0] + ".png";
+                    // console.log(this.city_weather2[2]);
+                })
+                .catch(error => {
+                    console.log(error.response);
+                })
+        },
     }
 });
