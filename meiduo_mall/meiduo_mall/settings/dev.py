@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'payment.apps.PaymentConfig',
     'django_crontab',
     'wallet.apps.WalletConfig',
-    'coupons.apps.CouponsConfig'
+    'coupons.apps.CouponsConfig',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
