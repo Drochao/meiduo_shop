@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 
+from goods import test_views
 from meiduo_mall.apps.goods import views
 
 app_name = 'goods'
@@ -11,4 +12,5 @@ urlpatterns = [
     re_path(r'^detail/(?P<sku_id>\d+)/$', views.DetailView.as_view()),
     re_path(r'^visit/(?P<category_id>\d+)/$', views.DetailVisitView.as_view()),
     # re_path(r'^comments/(?P<sku_id>\d+)/$', views.ShowCommentView.as_view()),
+    re_path(r'^sku/(?P<pk>\d+)/$', test_views.SKUDetailView.as_view()),
 ]
