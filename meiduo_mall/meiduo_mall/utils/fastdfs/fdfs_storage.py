@@ -18,4 +18,4 @@ class FastDFSStorage(Storage):
         """
         # return 'http://192.168.103.158:8888/' + name
         # return 'http://image.meiduo.site:8888/' + name
-        return "http://192.168.13.59:8888/" + name
+        return "http://192.168.13.34:8888/" + name
