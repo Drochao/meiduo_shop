@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
+import datetime
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'contents.apps.ContentsConfig',
     'verifications.apps.VerificationsConfig',
-    'xadmin',
-    'crispy_forms',
     'oauth.apps.OauthConfig',
     'areas.apps.AreasConfig',
     'orders.apps.OrdersConfig',
@@ -52,10 +50,12 @@ INSTALLED_APPS = [
     'django_crontab',
     'wallet.apps.WalletConfig',
     'coupons.apps.CouponsConfig',
-    'rest_framework'
+    'rest_framework',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'meiduo_mall.urls'
@@ -155,7 +156,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -252,12 +253,14 @@ AUTH_USER_MODEL = 'users.User'
 
 # 让查询用户表时不会关联is_active
 # AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
-AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileAuthBackend']
+
+# AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileAuthBackend']
+AUTHENTICATION_BACKENDS = ['meiduo_mall.utils.authenticate.MeiduoModelBackend']
 
 LOGIN_URL = '/login/'
 
 EMAIL_HOST = 'smtp.qq.com'
-EMAIL_PORT = 25   # 发件箱的smtp服务器端口
+EMAIL_PORT = 25  # 发件箱的smtp服务器端口
 EMAIL_HOST_USER = '934061223@qq.com'  # 你的 QQ 账号
 EMAIL_HOST_PASSWORD = 'himgivgiytszbbdi'
 EMAIL_USE_TLS = True  # 这里必须是 True，否则发送不成功
@@ -274,13 +277,14 @@ DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
 
 # FastDFS相关参数
 FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
+FDFS_CONFPATH = os.path.join(BASE_DIR, 'utils/fastdfs/client.conf')
 
 # Haystack
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://192.168.13.222:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
-        'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
+        'URL': 'http://192.168.13.34:9200/',  # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall',  # Elasticsearch建立的索引库的名称
     },
 }
 
@@ -308,3 +312,22 @@ CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
 WEIBO_APP_ID = "App Key"
 WEIBO_APP_KEY = "App Secret"
 WEIBO_REDIRECT_URI = "回调地址"
+
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    'http://127.0.0.1:8080',
+)
+CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=10),
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'meiduo_admin.utils.jwt_response_payload_handler'
+}

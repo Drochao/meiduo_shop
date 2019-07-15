@@ -68,7 +68,9 @@
     </div>
 {% endblock body %}
 {% block script %}
-</div>
+    {% block div %}
+        </div>
+    {% endblock %}
 <script type="text/javascript" src="/static/js/jquery.pagination.min.js"></script>
 <script type="text/javascript" src="/static/js/common.js"></script>
 <script type="text/javascript" src="/static/js/base.js"></script>

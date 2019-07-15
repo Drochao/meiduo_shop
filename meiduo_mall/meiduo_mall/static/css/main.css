@@ -857,8 +857,8 @@ html,body{height:100%}
 
 
 .settle_con{margin:10px}
-.total_goods_count,.transit,.total_pay{line-height:24px;text-align:right}
-.total_goods_count em,.total_goods_count b,.transit b,.total_pay b{font-size:14px;color:#ff4200;padding:0 5px;}
+.total_goods_count,.transit,.discounts,.total_pay{line-height:24px;text-align:right}
+.total_goods_count em,.total_goods_count b,.transit b,.total_pay b,.discounts b{font-size:14px;color:#ff4200;padding:0 5px;}
 
 .order_submit{width:1200px;margin:20px auto;}
 .order_submit a{width:160px;height:40px;line-height:40px;text-align:center;background-color:#fe0000;color:#fff;font-size:16px;display:block;float:right}

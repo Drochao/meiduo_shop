@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
 {% block body %}
-<body>
-<div id="app" v-cloak>
+    <body>
+    <div id="app" v-cloak>
     <div class="header_con">
         <div class="header">
-            <div class="welcome fl">欢迎来到美多商城!</div>
+            <div class="welcome fl">欢迎来到美多商城!
+                <iframe scrolling="no" src="https://tianqiapi.com/api.php?style=tc&skin=pitaya" frameborder="0"
+                        width="350" height="16" allowtransparency="true"></iframe>
+            </div>
             <div class="fr">
                 <div class="login_btn fl" v-if="username">
                     欢迎您：<em>[[ username ]]</em>
@@ -59,6 +62,32 @@
         </dl>
         <a href="/addresses/" class="edit_site">编辑收货地址</a>
     </div>
+
+
+    {% if coupons %}
+        <div class="common_list_con clearfix" id="get_coupon">
+            <dl>
+                <dt>选择优惠券：</dt>
+                {% for coupon in coupons %}
+                    {% if coupon.id == -1 %}
+                        <dd @click="change_coupon({{ coupon.id }},{{ loop.index0 }})"><input type="radio"
+                                                                                             v-model="nowcoupon"
+                                                                                             value="{{ coupon.id }}">{{ coupon.name }}
+                        </dd>
+                    {% else %}
+                        <dd @click="change_coupon({{ coupon.id }},{{ loop.index0 }})"><input type="radio"
+                                                                                             v-model="nowcoupon"
+                                                                                             value="{{ coupon.id }}">{{ coupon.name }}
+                            【{{ coupon.select_str }}】 过期:{{ coupon.end_date }}</dd>
+                    {% endif %}
+                {% endfor %}
+                {#                 <dd @click="change_coupon('over','over')"><input type="radio" v-model="nowcoupon" value="over">不使用优惠券</dd>#}
+            </dl>
+            {#        <a href="/addresses/" class="edit_site">编辑收货地址</a>#}
+        </div>
+    {% endif %}
+
+
     <h3 class="common_title">支付方式</h3>
     <div class="common_list_con clearfix">
         <div class="pay_style_con clearfix">
@@ -94,22 +123,29 @@
         <div class="settle_con">
             <div class="total_goods_count">共<em>{{ total_count }}</em>件商品，总金额<b>{{ total_amount }}元</b></div>
             <div class="transit">运费：<b>{{ freight }}元</b></div>
-            <div class="total_pay">实付款：<b>{{ payment_amount }}元</b></div>
+            {% if default_coupon_id != "0" %}
+                <div class="discounts">优惠券：<b>-[[ discounts|money]]元</b></div>
+            {% endif %}
+            <div class="total_pay">实付款：<b>[[ payment_amount|money ]]元</b></div>
         </div>
     </div>
     <div class="order_submit clearfix">
-        <a @click="on_order_submit" id="order_btn">提交订单</a>
+        <a @click="on_order_submit" href="javascript:;" id="order_btn">提交订单</a>
     </div>
 {% endblock body %}
 {% block script %}
-</div>
-<script type="text/javascript">
-    let payment_amount ={{ payment_amount }};
-    let default_address_id ={{ request.user.default_address_id }}
-</script>
-<script type="text/javascript" src="/static/js/common.js"></script>
-<script type="text/javascript" src="/static/js/base.js"></script>
-<script type="text/javascript" src="/static/js/place_order.js"></script>
-</body>
-</html>
+    {% block div %}</div>{% endblock %}
+    <script type="text/javascript">
+        let payment_amount ={{ payment_amount }};
+        let default_address_id ={{ request.user.default_address_id }};
+        let pay_original = {{ pay_original }};
+        let default_coupon_id = {{ default_coupon_id }};
+        let discounts = {{ discounts }};
+        let coupons = {{ coupons_jinja2 | safe}};
+    </script>
+    <script type="text/javascript" src="/static/js/common.js"></script>
+    <script type="text/javascript" src="/static/js/base.js"></script>
+    <script type="text/javascript" src="/static/js/place_order.js"></script>
+    </body>
+    </html>
 {% endblock %}

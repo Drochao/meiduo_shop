@@ -1,10 +1,9 @@
 import json
 import logging
-import random
 import re
 
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -18,7 +17,7 @@ from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.views import LoginRequiredView
 from users import constants
 from users.models import User, Address
-from users.utils import UsernameMobileAuthBackend, generate_verify_email_url, getdata, forbidden
+from users.utils import generate_verify_email_url, getdata, forbidden
 from wallet.models import Wallet
 
 logger = logging.getLogger('user')
@@ -78,10 +77,8 @@ class RegisterView(View):
             print(e)
             return render(request, 'register.html', {'register_errmsg': '注册失败'})
 
-        share_code = '%06d' % random.randint(0, 999999)
-        logger.info(share_code)
         try:
-            user = Wallet.objects.create(user=user,share_code=share_code, balance=100)
+            Wallet.objects.create(user=user, balance=100)
         except Exception as e:
             print(e)
             return render(request, 'register.html', {'register_errmsg': '注册失败'})
@@ -133,9 +130,7 @@ class LoginView(View):
         password = request.POST.get("password")
         remembered = request.POST.get("remembered")
         # 校验数据
-        user = UsernameMobileAuthBackend()
-
-        user = user.authenticate(request, username=username, password=password)
+        user = authenticate(request, username=username, password=password)
         if not user:
             return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
         # 状态保持
@@ -481,5 +476,3 @@ class UserBrowseHistory(View):
             return JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'skus': sku_list})
         else:
             return JsonResponse({'code': RETCODE.SESSIONERR, 'errmsg': '用户未登录', 'skus': []})
-
-

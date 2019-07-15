@@ -14,14 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import path, include, re_path
-
-import xadmin
-from orders import views
+from django.urls import path, include
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
-    path('adminx/', xadmin.site.urls),
     path('', include('users.urls', namespace='users')),
     path('', include('contents.urls', namespace='contents')),
     path('', include('verifications.urls', namespace='verifications')),
@@ -34,4 +29,5 @@ urlpatterns = [
     path('orders/', include('orders.urls', namespace='orders')),
     path('search/', include('haystack.urls')),
     path('', include('coupons.urls', namespace="coupons")),
+    path('meiduo_admin/', include('meiduo_admin.urls', namespace='meiduo_admin'))
 ]

@@ -1,57 +1,7 @@
 {% extends 'base.html' %}
 {% block css %}
-    <style type="text/css">
-        /* 所有的元素的外边距和内边距都为0, 项目列表前的类型为无 */
-        * {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        body {
-            height: 1000px;
-        }
-
-        /* 插入背景图片 图片位于右下角不显示 */
-        /* .ad { background: url(images/ad.jpg); width: 280px; height: 0px; */
-        .ad {
-            background: url("/static/images/apple/iphone.png") no-repeat 50px 0px;
-            width: 280px;
-            height: 0px;
-            /* position:fixed生成绝对定位的元素，相对于浏览器窗口进行定位。right:0靠右bottom:0底部 */
-            position: fixed;
-            right: 0px;
-            bottom: 0px;
-        }
-
-        /* 生成绝对定位的元素,相对于static定位以外的第一个父元素进行定位.static默认值.没有定位,元素出现在正常的流中
-        text-decoration: none 默认。定义标准的文本（文字没有下划线）*/
-        .close_btn {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            text-decoration: none;
-        }
-    </style>
-
-    <script type="text/javascript">
-        $(function () {
-            // 加载完成上升高度完全显示 188  animate() 方法执行 CSS 属性集的自定义动画
-            $('.ad').animate({height: 288});
-            setInterval(f1, 5000);
-
-            function f1() {
-                $(function () {
-                    $('.ad').animate({height: 0}, 2000);
-                });
-            };
-
-            // 鼠标点击事件执行回退
-            $('.close_btn').click(function () {
-                $(this).parent().animate({height: 0});
-            });
-        });
-    </script>
+    <link type="text/css" rel="stylesheet" href="{{ static('css/weather.css') }}">
+    <script type="text/javascript" src="{{ static('js/weather.js') }}"></script>
 {% endblock %}
 {% block body %}
     <body>

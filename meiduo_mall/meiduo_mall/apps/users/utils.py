@@ -68,3 +68,4 @@ def forbidden(data_list):
         if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', data_list[7]):
             return '参数email有误'
 
+

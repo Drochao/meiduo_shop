@@ -9,6 +9,8 @@ from django.shortcuts import render
 from django.utils import timezone
 from django_redis import get_redis_connection
 
+from coupons.models import CouponDetail, CouponComb
+from coupons.utils import skus_with_coupon
 from goods.models import SKU
 from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.views import LoginRequiredView
@@ -46,8 +48,23 @@ class OrderSettlementView(LoginRequiredView):
         total_count = 0
         total_amount = Decimal(0.00)
 
+        coupons_detail = CouponDetail.objects.filter(user=user, status=True)  # 先查出这个用户拥有的所有优惠券
+        skus_sam = []
+
         skus = SKU.objects.filter(id__in=cart.keys())
         for sku in skus:
+            for x in coupons_detail[:]:  # 遍历用户持有的全部优惠券
+                coupon = x.coupon
+                if coupon.end_date < timezone.now().date():
+                    coupon.receive = False  # 如果优惠券已经过期，把可领状态关闭掉
+                    coupon.save()
+                    coupon.details.all().update(status=False)  # 把相关的有效全部关掉
+                    coupons_detail = coupons_detail.exclude(coupon=coupon)  # 从列表中删除掉这张优惠券
+                    continue
+                coupon_select_skus = skus_with_coupon(coupon)  # 自己封装的获取全部skus
+                if sku not in coupon_select_skus:
+                    coupons_detail = coupons_detail.exclude(coupon_id=coupon.id)  # 从列表中删除掉这张优惠券
+
             sku.count = cart[sku.id]
             sku.amount = sku.count * sku.price
 
@@ -56,13 +73,61 @@ class OrderSettlementView(LoginRequiredView):
 
         freight = Decimal('10.00')
 
+        payment_original_price = total_amount + freight  # 未优惠前总价
+
+        coupons_jinja2 = ["0.00"]
+        coupons = [{
+            "id": -1,
+            "name": "不使用优惠券",
+            "discounts": 0
+        }]  # 查出所有支持的优惠券
+        for x in coupons_detail:
+            coupon = x.coupon
+            if coupon in coupons:  # 去重喔
+                continue
+            coupon_rules = coupon.type.rules.all()  # 查这个coupon名下有什么规则
+            coupon_threshold = coupon_rules.get(key="threshold")
+            threshold = int(CouponComb.objects.get(coupon=coupon, rule=coupon_threshold).option.value)
+            if payment_original_price < threshold:  # 未达到使用门槛
+                continue
+
+            if coupon.type_id == 3:
+                discount = "%.2f" % float(payment_original_price)  # 类型3为兑换券，数据库没有discount值
+            else:
+                # discount:满减金额 折扣 或者 兑换券 str
+                coupon_discount = coupon_rules.get(key="discount")
+                discount = CouponComb.objects.get(coupon=coupon, rule=coupon_discount).option.value
+                if coupon.type_id == 1:  # 满减的类型
+                    discount = "%.2f" % float(discount)
+                else:
+                    # ==2 折扣类型 组合 8.5 折 这样
+                    discount = "%.2f" % ((1 - Decimal(discount) / 10) * total_amount)
+            coupon.discount = discount
+            coupons.append(coupon)
+            coupons_jinja2.append(discount)
+
+        discounts = Decimal('0.00')  # 正数
+
+        try:
+            default_coupon_id = coupons[1].id  # 默认选哪张优惠券 先不做智能的事
+        except Exception as e:
+            default_coupon_id = "0"
+            discounts = Decimal('0')
+            coupons_jinja2 = [0]
+
         context = {
-            'addresses': addresses,
-            'skus': skus,
-            'total_count': total_count,
-            'total_amount': total_amount,
-            'freight': freight,
-            'payment_amount': total_amount + freight
+            'title': "订单提交",  # 页面标题
+            'coupons': coupons,  # 优惠券
+            'default_coupon_id': default_coupon_id,  # 默认优惠券id
+            'addresses': addresses,  # 默认地址
+            'skus': skus_sam,  # skus
+            'total_count': total_count,  # 单商品总数量
+            'total_amount': total_amount,  # 单商品的总价格
+            'freight': freight,  # 运费
+            'pay_original': total_amount + freight,  # 原总价
+            'discounts': discounts,  # 同时只能用一张优惠券
+            'payment_amount': total_amount + freight - discounts,  # 显示最后的价格
+            "coupons_jinja2": coupons_jinja2
         }
         return render(request, 'place_order.html', context)
 

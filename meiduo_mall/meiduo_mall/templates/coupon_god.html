@@ -1,25 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <title>美多商城-首页</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/reset.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/coupon.css">
-    <script type="text/javascript" src="/static/js/host.js"></script>
-    <script type="text/javascript" src="/static/js/vue-2.5.16.js"></script>
-    <script type="text/javascript" src="/static/js/axios-0.18.0.min.js"></script>
-    <script type="text/javascript" src="/static/js/jquery-1.12.4.min.js"></script>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block body %}
 
 <div id="app" v-cloak>
-
-
     <div class="header_con">
         <div class="header">
-            <div class="welcome fl">欢迎来到美多商城!</div>
+            <div class="welcome fl">欢迎来到美多商城!
+                <iframe scrolling="no" src="https://tianqiapi.com/api.php?style=tc&skin=pitaya" frameborder="0" width="350" height="16" allowtransparency="true"></iframe>
+            </div>
             <div class="fr">
                 <div class="login_btn fl" v-if="username">
                     欢迎您：<em>[[ username ]]</em>
@@ -145,49 +132,27 @@
     </div>
 
 
-
-
-
-
     <div class="coupon_sams" id="coupon_all">
 
 
+        <div class="info_con clearfix">
+            <h3 class="common_title2">上帝的推荐链接： 推荐朋友注册成功你将获得 【上帝优惠券】：兑换全场任意商品</h3>
+            <div class="site_con pass_change_con">
+                <div class="form_group">
+                    <label>{{ god_url }}</label>
 
-                    <div class="info_con clearfix">
-                <h3 class="common_title2">上帝的推荐链接： 推荐朋友注册成功你将获得 【上帝优惠券】：兑换全场任意商品</h3>
-                <div class="site_con pass_change_con">
-                    <div class="form_group">
-                        <label>{{ god_url }}</label>
 
-
-                    </div>
                 </div>
             </div>
-
-    </div>
-
-
-
-
-
-
-
-    <div class="footer">
-        <div class="foot_link">
-            <a href="#">关于我们</a>
-            <span>|</span>
-            <a href="#">联系我们</a>
-            <span>|</span>
-            <a href="#">招聘人才</a>
-            <span>|</span>
-            <a href="#">友情链接</a>
         </div>
-        <p>CopyRight © 2016 北京美多商业股份有限公司 All Rights Reserved</p>
-        <p>电话：010-****888 京ICP备*******8号</p>
+
     </div>
+{% endblock body %}
+{% block script %}
 </div>
 <script type="text/javascript" src="/static/js/slide.js"></script>
 <script type="text/javascript" src="/static/js/common.js"></script>
 <script type="text/javascript" src="/static/js/coupon_god.js"></script>
 </body>
 </html>
+{% endblock %}

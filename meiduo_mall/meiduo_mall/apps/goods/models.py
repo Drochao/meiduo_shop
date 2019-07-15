@@ -17,7 +17,7 @@ class GoodsCategory(BaseModel):
         return self.name
 
 
-class GoodsChannelGroup(BaseModel):
+class GoodsChannelGroup(models.Model):
     """商品频道组"""
     name = models.CharField('频道组名', max_length=20)
 
