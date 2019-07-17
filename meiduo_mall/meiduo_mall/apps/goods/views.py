@@ -82,7 +82,7 @@ class HotGoodsView(View):
     def get(self, request, category_id):
         """提供商品热销排行JSON数据"""
         #
-        skus = SKU.objects.filter(category_id=category_id, is_launched=True)
+        skus = SKU.objects.filter(category_id=category_id, is_launched=True)[:3]
 
         hot_skus = []
         for sku in skus:

@@ -12,16 +12,21 @@ from django.test import TestCase
 # adder5 = adder(5)
 # print(adder5(adder5(6)))
 
-class D:
-    data = {'a': 1}
+class dengcha:
+    def __init__(self, a1, an, d):
+        self.a1 = a1
+        self.an = an
+        self.d = d
 
-    def __init__(self):
-        self.dict1 = {'a': 1}
+    def he(self):
+        i = self.a1
+        sum1 = i
+        while i < self.an:
+            temp = i + 2
+            sum1 = sum1 + temp
+            i = temp
+        return sum1
 
-    def data1(self):
-        return self.dict1
 
-
-d = D()
-d.data['b'] = 2
-print(d.data)
+dc = dengcha(20, 70, 2)
+print(dc.he())

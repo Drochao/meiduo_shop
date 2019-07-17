@@ -2,17 +2,20 @@ from django.urls import path, re_path
 from rest_framework.routers import SimpleRouter
 from rest_framework_jwt.views import obtain_jwt_token
 
-from meiduo_admin.views.brand_views import BrandViewSet
-from meiduo_admin.views.channels_views import ChannelViewSet, ChannelGroupView
-from meiduo_admin.views.goods_views import GoodsViewSet
-from meiduo_admin.views.home_views import HomeViewSet
-from meiduo_admin.views.image_view import ImageViewSet
-from meiduo_admin.views.options_views import OptionsViewSet
-from meiduo_admin.views.order_views import OrderViewSet
-from meiduo_admin.views.sku_views import SKUGoodsViewSet
-from meiduo_admin.views.spec_views import SpecViewSet
-from meiduo_admin.views.spu_views import ChannelCategoryView, SPUBrandView
-from meiduo_admin.views.user_views import UserView
+from meiduo_admin.views.admins_views import AdminView
+from meiduo_admin.views.brand_views import *
+from meiduo_admin.views.channels_views import *
+from meiduo_admin.views.goods_views import *
+from meiduo_admin.views.groups_views import *
+from meiduo_admin.views.home_views import *
+from meiduo_admin.views.image_view import *
+from meiduo_admin.views.options_views import *
+from meiduo_admin.views.order_views import *
+from meiduo_admin.views.perms_views import *
+from meiduo_admin.views.sku_views import *
+from meiduo_admin.views.spec_views import *
+from meiduo_admin.views.spu_views import *
+from meiduo_admin.views.user_views import *
 
 app_name = 'meiduo_admin'
 urlpatterns = [
@@ -55,7 +58,8 @@ urlpatterns = [
                                                                       "delete": "destroy",
                                                                       "put": "update",
                                                                       "patch": "partial_update"})),
-
+    path('permission/content_types/', ContentTypes.as_view()),
+    path('permission/simple/', GroupSimpleView.as_view())
 ]
 
 router = SimpleRouter()
@@ -64,7 +68,9 @@ router.register(prefix='statistical', viewset=HomeViewSet, base_name='home')
 router.register(prefix='skus', viewset=SKUGoodsViewSet, base_name='skus')
 # router.register(prefix='goods/specs', viewset=SpecViewSet, base_name='specs')
 router.register(prefix='goods', viewset=GoodsViewSet, base_name='good')
-
 router.register(prefix='specs/options', viewset=OptionsViewSet, base_name='options')
 router.register(prefix='orders', viewset=OrderViewSet, base_name='orders')
+router.register(prefix='permission/perms', viewset=PermsViewSet, base_name='perms')
+router.register(prefix='permission/groups', viewset=GroupsViewSet, base_name='groups')
+router.register(prefix='permission/admins', viewset=AdminView, base_name='admins')
 urlpatterns += router.urls

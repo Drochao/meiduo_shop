@@ -156,7 +156,9 @@
     </div>
 {% endblock body %}
 {% block script %}
-</div>
+    {% block div %}
+        </div>
+    {% endblock %}
 <script type="text/javascript">
     let category_id ={{ category.id }};
 </script>
