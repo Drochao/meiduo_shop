@@ -113,8 +113,8 @@ DATABASES = {
         'NAME': 'meiduo_27',
         'HOST': '127.0.0.1',
         'PORT': '',
-        'USER': 'chao',
-        'PASSWORD': 'qinhan',
+        'USER': 'root',
+        'PASSWORD': '123456',
     }
     #
     # 'slave': {  # 读（从机）
